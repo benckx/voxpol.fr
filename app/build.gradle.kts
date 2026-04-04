@@ -35,3 +35,11 @@ tasks.shadowJar {
         attributes("Main-Class" to application.mainClass.get())
     }
 }
+
+tasks.startScripts {
+    dependsOn(tasks.shadowJar)
+}
+
+tasks.named("startShadowScripts") {
+    dependsOn(tasks.jar)
+}
