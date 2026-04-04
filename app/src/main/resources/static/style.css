@@ -1,0 +1,266 @@
+body {
+    margin: 0;
+    font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    background: #123a77;
+    color: whitesmoke;
+    font-size: 14px;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+}
+
+main.container {
+    margin-top: 10px;
+    width: min(100%, 1100px);
+    padding: 20px 24px 40px;
+    box-sizing: border-box;
+}
+
+.combination-section {
+    background: whitesmoke;
+    color: #1f2937;
+    border-radius: 20px;
+    padding: 39px 37px;
+    margin-bottom: 30px;
+    /*box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);*/
+}
+
+.combination-section h3 {
+    margin-top: 0;
+    margin-bottom: 16px;
+    text-align: center;
+    font-size: 34px;
+}
+
+.poll-line-chart {
+    width: 100%;
+    min-height: 400px;
+    margin-bottom: 16px;
+}
+
+.poll-summary-chart {
+    width: 100%;
+    min-height: 300px;
+    margin-bottom: 20px;
+}
+
+.candidate-trend-chart {
+    width: 100%;
+}
+
+.poll-chart-data {
+    display: none;
+}
+
+main.container h2 {
+    margin-top: 40px;
+    margin-bottom: 20px;
+    font-size: 22px;
+    color: whitesmoke;
+    text-align: center;
+    padding-top: 20px;
+}
+
+a, a:visited {
+    color: blue;
+    text-decoration: none;
+}
+
+.poll-data td {
+    text-align: center;
+}
+
+.poll-data {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.poll-data-scroll {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.poll-data-scroll .poll-data {
+    min-width: 760px;
+}
+
+.poll-data .pollster {
+    width: 80px;
+}
+
+.poll-data .date-cell {
+    width: 80px;
+}
+
+.poll-data .candidate-column {
+    width: 70px;
+    font-size: 13px;
+}
+
+.poll-data .score-data {
+    font-size: 13px;
+}
+
+.poll-data td.top-score {
+    font-weight: 700;
+}
+
+.apexcharts-tooltip-custom {
+    background: #ffffff !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    padding: 8px 12px !important;
+    font-size: 13px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+.apexcharts-tooltip-custom > div {
+    margin-bottom: 6px;
+    font-weight: 500;
+    color: #374151;
+}
+
+.apexcharts-tooltip-custom > div:last-child {
+    margin-bottom: 0;
+}
+
+.apexcharts-tooltip-custom > div span {
+    margin-right: 6px;
+}
+
+.apexcharts-tooltip-custom .tooltip-pollster {
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px solid #e5e7eb;
+    font-size: 12px;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.site-footer {
+    margin-top: 20px;
+    margin-bottom: 8px;
+    text-align: center;
+    color: whitesmoke;
+    font-size: 16px;
+}
+
+.site-footer a,
+.site-footer a:visited {
+    color: whitesmoke;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.trend-list {
+    display: grid;
+    gap: 12px;
+}
+
+.trend-row {
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    padding: 10px 12px;
+}
+
+.trend-header,
+.trend-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.trend-header {
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+.trend-latest {
+    font-variant-numeric: tabular-nums;
+}
+
+.trend-bar-track {
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.trend-bar {
+    height: 100%;
+    border-radius: inherit;
+}
+
+.trend-meta {
+    margin-top: 6px;
+    font-size: 12px;
+    color: #4b5563;
+}
+
+.trend-delta {
+    font-weight: 700;
+}
+
+.trend-up {
+    color: #16a34a;
+}
+
+.trend-flat {
+    color: #64748b;
+}
+
+.trend-down {
+    color: #dc2626;
+}
+
+.trend-toggle-container {
+    margin-top: 12px;
+    text-align: center;
+}
+
+.trend-toggle {
+    border: 1px solid #9ca3af;
+    background: #f8fafc;
+    color: #1f2937;
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.trend-toggle:hover {
+    background: #eef2f7;
+}
+
+.trend-toggle:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+
+@media (max-width: 768px) {
+    main.container {
+        padding: 12px 10px 24px;
+    }
+
+    .combination-section {
+        padding: 20px 14px;
+        border-radius: 14px;
+    }
+
+    .poll-data .candidate-column,
+    .poll-data .score-data,
+    .poll-data .pollster,
+    .poll-data .date-cell {
+        font-size: 12px;
+    }
+
+    .poll-data .pollster,
+    .poll-data .date-cell {
+        width: 64px;
+    }
+
+    .poll-data .candidate-column {
+        width: 56px;
+    }
+}
