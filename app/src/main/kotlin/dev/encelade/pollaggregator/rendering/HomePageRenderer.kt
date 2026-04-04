@@ -87,7 +87,7 @@ suspend fun ApplicationCall.renderHomePage(
                 }
 
                 if (globalIntervalsData.stats.isNotEmpty()) {
-                    h2 { +"Intervals" }
+                    h2 { +"Intervalles" }
                     p { +rangeDescription }
                     section("combination-section") {
                         div("poll-intervals-chart poll-intervals-chart-global") {
