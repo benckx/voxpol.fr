@@ -122,7 +122,7 @@ fun buildCandidateTrendChartData(
                 previousAvg = previousAvg,
                 delta = delta,
                 direction = when {
-                    abs(delta) < 0.001 -> TrendDirectionDto.FLAT
+                    abs(delta) < .005 -> TrendDirectionDto.FLAT // half a percent
                     delta > 0 -> TrendDirectionDto.UP
                     else -> TrendDirectionDto.DOWN
                 },
