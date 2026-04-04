@@ -14,7 +14,7 @@ class PollService {
     private val logger = KotlinLogging.logger {}
 
     @Volatile
-    private var polls: List<PollRecord> = emptyList()
+    private var inMemPollRecords: List<PollRecord> = emptyList()
 
     private val scheduler = Executors.newSingleThreadScheduledExecutor { r ->
         Thread(r, "poll-refresh").also { it.isDaemon = true }
@@ -28,7 +28,7 @@ class PollService {
         try {
             logger.info { "Fetching poll data from Wikipedia..." }
             val scrapper = WikiScrapper()
-            val records = scrapper.fetchAllStudies()
+            val pollRecords = scrapper.fetchAllStudies()
                 .flatMap { study ->
                     study.polls.map { poll ->
                         PollRecord(
@@ -41,16 +41,38 @@ class PollService {
                         )
                     }
                 }
-            if (records.isNotEmpty()) {
-                polls = records
-                logger.info { "Loaded ${records.size} poll records from Wikipedia." }
+
+            if (pollRecords.isNotEmpty()) {
+                val csvCount = csvPollCount()
+                if (csvCount > 0 && pollRecords.size * 2 <= csvCount) {
+                    logger.warn { "Wikipedia returned only ${pollRecords.size} records, which is half or less of CSV count ($csvCount). Falling back to CSV." }
+                    loadFromCsv()
+                    return
+                }
+                inMemPollRecords = pollRecords
+                logger.info {
+                    val latestDate = pollRecords.maxOf { it.dateTo }
+                    val daysAgo = LocalDate.now().toEpochDay() - latestDate.toEpochDay()
+                    "Loaded ${pollRecords.size} poll records from Wikipedia. Latest data point: $latestDate ($daysAgo day(s) ago)"
+                }
                 return
             }
-            logger.warn { "Wikipedia scraping returned no records${if (polls.isEmpty()) ", falling back to CSV" else ", keeping current data"}." }
+            logger.warn { "Wikipedia scraping returned no records${if (inMemPollRecords.isEmpty()) ", falling back to CSV" else ", keeping current data"}." }
         } catch (e: Exception) {
-            logger.error(e) { "Failed to scrape Wikipedia${if (polls.isEmpty()) ", falling back to CSV" else ", keeping current data"}." }
+            logger.error(e) { "Failed to scrape Wikipedia${if (inMemPollRecords.isEmpty()) ", falling back to CSV" else ", keeping current data"}." }
         }
-        if (polls.isEmpty()) loadFromCsv()
+
+        if (inMemPollRecords.isEmpty()) loadFromCsv()
+    }
+
+    private fun csvPollCount(): Int {
+        return try {
+            val classLoader = PollService::class.java.classLoader
+            CsvLoader.load("poll-data.csv", classLoader).polls.size
+        } catch (e: Exception) {
+            logger.warn(e) { "Failed to load CSV for count comparison." }
+            0
+        }
     }
 
     private fun loadFromCsv() {
@@ -58,17 +80,17 @@ class PollService {
             val resourceName = "poll-data.csv"
             val classLoader = PollService::class.java.classLoader
             val csvData = CsvLoader.load(resourceName, classLoader)
-            polls = csvData.polls
-            logger.info { "Loaded ${polls.size} poll records from CSV fallback." }
+            inMemPollRecords = csvData.polls
+            logger.info { "Loaded ${inMemPollRecords.size} poll records from CSV fallback." }
         } catch (e: Exception) {
             logger.error(e) { "Failed to load CSV fallback." }
         }
     }
 
     fun pollsBefore(cutoffDate: LocalDate) =
-        polls.filter { !it.dateTo.isBefore(cutoffDate) }
+        inMemPollRecords.filter { !it.dateTo.isBefore(cutoffDate) }
 
-    fun allPolls(): List<PollRecord> = polls
+    fun allPolls(): List<PollRecord> = inMemPollRecords
 
     fun combinationsByRecency(): List<TestingHypothesis> {
         // most recent poll, then has the most polls
@@ -76,7 +98,7 @@ class PollService {
             compareByDescending<Map.Entry<Set<Candidate>, List<PollRecord>>> { (_, polls) -> polls.maxOf { it.dateTo } }
                 .thenByDescending { (_, polls) -> polls.size }
 
-        return polls
+        return inMemPollRecords
             .groupBy { it.scoresByCandidate.keys }
             .entries
             .sortedWith(comparator)
@@ -84,7 +106,7 @@ class PollService {
     }
 
     fun pollsForTestingHypothesis(hypothesis: TestingHypothesis): List<PollRecord> {
-        return polls
+        return inMemPollRecords
             .filter { it.scoresByCandidate.keys == hypothesis.candidates }
             .sortedByDescending { it.dateTo }
     }
