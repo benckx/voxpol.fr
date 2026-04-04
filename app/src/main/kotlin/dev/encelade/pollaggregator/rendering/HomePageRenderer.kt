@@ -39,7 +39,7 @@ suspend fun ApplicationCall.renderHomePage(
 
     val pageDescription = "voxpol.fr présente les sondages pour le premier tour de l'élection présidentielle de 2027."
     val trendDescription = "Evolution moyenne par candidat entre les $trendWindowDays derniers jours " +
-            "et les $trendWindowDays jours precedents."
+            "et les $trendWindowDays jours precedents. La durée de cette fenêtre sera réduire à l'approche du scrutin."
     val rangeDescription = "Ce graphique présente la plage des intentions de vote " +
             "pour chaque candidat, basée sur les sondages réalisés " +
             "au cours des 365 derniers jours. La barre représente " +
@@ -56,7 +56,7 @@ suspend fun ApplicationCall.renderHomePage(
             meta(name = "description", content = metaDescription)
             meta(name = "keywords", content = metaKeywords)
             meta(name = "author", content = "benckx")
-            title("Sondages Premier Tour 2027")
+            title("Sondages Premier Tour 2027 - voxpol.fr")
             link(rel = "stylesheet", href = "/static/style.css", type = ContentType.Text.CSS.toString())
             script(src = "https://cdn.jsdelivr.net/npm/apexcharts") {}
             script(src = "/static/trend-chart.js") { defer = true }
@@ -111,26 +111,7 @@ suspend fun ApplicationCall.renderHomePage(
                     combinationSection(pollService, combination, index)
                 }
 
-                footer("site-footer") {
-                    p {
-                        +"Site sans pub, car je n'aime pas la pub."
-                        br {}
-                        +"Mais j'aime le "
-                        a(href = "https://www.paypal.com/paypalme/benckx/4") {
-                            target = "_blank"
-                            rel = "noopener noreferrer"
-                            +"café"
-                        }
-                        +" si jamais."
-                    }
-                    p {
-                        a(href = "https://benckx.me") {
-                            target = "_blank"
-                            rel = "noopener noreferrer"
-                            +"Contact"
-                        }
-                    }
-                }
+                renderFooter()
             }
         }
     }
