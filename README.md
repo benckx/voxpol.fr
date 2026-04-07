@@ -14,3 +14,4 @@ Poll data aggregator for the 2027 French presidential election.
 - second round
 - config flag to force fallback on the csv
 - cutoff date for old polls
+- share link/widget for each poll
