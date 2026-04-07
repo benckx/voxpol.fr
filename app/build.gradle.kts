@@ -14,6 +14,7 @@ dependencies {
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.html.builder)
     implementation(libs.ktor.server.netty)
+    implementation(libs.ktor.server.defaultheaders)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.klogger)
     implementation(libs.logback.classic.lib)
