@@ -38,6 +38,7 @@ private fun Application.module(configArg: String? = null) {
         get("/embed/trend") {
             call.renderTrendEmbed(
                 pollService = pollService,
+                gaEnabled = appConfig.gaEnabled,
                 trendWindowDays = appConfig.trendWindowDays,
             )
         }

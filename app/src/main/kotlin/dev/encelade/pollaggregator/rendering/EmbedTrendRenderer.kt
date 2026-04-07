@@ -10,6 +10,7 @@ import kotlinx.serialization.json.Json
 
 suspend fun ApplicationCall.renderTrendEmbed(
     pollService: PollService,
+    gaEnabled: Boolean,
     trendWindowDays: Int,
 ) {
     val trendChartData = buildCandidateTrendChartData(
@@ -30,6 +31,7 @@ suspend fun ApplicationCall.renderTrendEmbed(
             script(src = "/static/utils.js") { defer = true }
             script(src = "/static/trend-chart.js") { defer = true }
             script(src = "/static/embed/embed-trend.js") { defer = true }
+            if (gaEnabled) renderGoogleAnalytics()
         }
         body {
             main("container") {
