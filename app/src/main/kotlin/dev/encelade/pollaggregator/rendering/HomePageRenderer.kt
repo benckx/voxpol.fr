@@ -85,13 +85,13 @@ suspend fun ApplicationCall.renderHomePage(
                             unsafe { +Json.encodeToString(trendChartData) }
                         }
                     }
-                    // TODO: to un-comment once I tested it
-//                    details("embed-info") {
-//                        summary { +"Intégrer ce widget" }
-//                        p { +"Copiez le code suivant pour intégrer le graphique de tendances sur votre site :" }
-//                        val iframeCode = """<iframe src="https://voxpol.fr/embed/trend" width="100%" height="520" frameborder="0" scrolling="no" style="border:none;"></iframe>"""
-//                        pre { code { +iframeCode } }
-//                    }
+                    details("embed-info") {
+                        summary { +"Intégrer ce widget" }
+                        p { +"Copiez le code suivant pour intégrer le graphique de tendances sur votre site:" }
+                        val iframeCode =
+                            """<iframe src="https://voxpol.fr/embed/trend" width="100%" height="700" frameborder="0" style="border:none;"></iframe>"""
+                        pre { code { +iframeCode } }
+                    }
                 }
 
                 if (globalIntervalsData.stats.isNotEmpty()) {
