@@ -59,6 +59,7 @@ suspend fun ApplicationCall.renderHomePage(
             title("Sondages Premier Tour 2027 - voxpol.fr")
             link(rel = "stylesheet", href = "/static/style.css", type = ContentType.Text.CSS.toString())
             script(src = "https://cdn.jsdelivr.net/npm/apexcharts") {}
+            script(src = "/static/utils.js") { defer = true }
             script(src = "/static/trend-chart.js") { defer = true }
             script(src = "/static/intervals-chart.js") { defer = true }
             script(src = "/static/line-charts.js") { defer = true }
@@ -84,6 +85,13 @@ suspend fun ApplicationCall.renderHomePage(
                             unsafe { +Json.encodeToString(trendChartData) }
                         }
                     }
+                    // TODO: to un-comment once I tested it
+//                    details("embed-info") {
+//                        summary { +"Intégrer ce widget" }
+//                        p { +"Copiez le code suivant pour intégrer le graphique de tendances sur votre site :" }
+//                        val iframeCode = """<iframe src="https://voxpol.fr/embed/trend" width="100%" height="520" frameborder="0" scrolling="no" style="border:none;"></iframe>"""
+//                        pre { code { +iframeCode } }
+//                    }
                 }
 
                 if (globalIntervalsData.stats.isNotEmpty()) {

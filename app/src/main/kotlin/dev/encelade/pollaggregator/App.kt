@@ -1,6 +1,7 @@
 package dev.encelade.pollaggregator
 
 import dev.encelade.pollaggregator.rendering.renderHomePage
+import dev.encelade.pollaggregator.rendering.renderTrendEmbed
 import dev.encelade.pollaggregator.services.PollService
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -20,7 +21,7 @@ private fun Application.module(configArg: String? = null) {
     val appConfig = parseAppConfig(configArg)
     val pollService = PollService()
 
-    defaultHeaders()
+    configureHeaders()
     routing {
         configureStaticResources(appConfig)
 
@@ -31,6 +32,12 @@ private fun Application.module(configArg: String? = null) {
             call.renderHomePage(
                 pollService = pollService,
                 gaEnabled = appConfig.gaEnabled,
+                trendWindowDays = appConfig.trendWindowDays,
+            )
+        }
+        get("/embed/trend") {
+            call.renderTrendEmbed(
+                pollService = pollService,
                 trendWindowDays = appConfig.trendWindowDays,
             )
         }

@@ -2,16 +2,25 @@ package dev.encelade.pollaggregator
 
 import io.ktor.http.CacheControl
 import io.ktor.server.application.Application
-import io.ktor.server.http.content.staticResources
-import io.ktor.server.routing.Route
+import io.ktor.server.application.createApplicationPlugin
 import io.ktor.server.application.install
+import io.ktor.server.http.content.staticResources
 import io.ktor.server.plugins.defaultheaders.DefaultHeaders
+import io.ktor.server.request.path
+import io.ktor.server.routing.Route
 
-fun Application.defaultHeaders() {
-    install(DefaultHeaders) {
-        header("X-Frame-Options", "DENY")
-        header("Content-Security-Policy", "frame-ancestors 'none'")
+private val AntiFrameHeadersPlugin = createApplicationPlugin("AntiFrameHeaders") {
+    onCall { call ->
+        if (!call.request.path().startsWith("/embed")) {
+            call.response.headers.append("X-Frame-Options", "DENY")
+            call.response.headers.append("Content-Security-Policy", "frame-ancestors 'none'")
+        }
     }
+}
+
+fun Application.configureHeaders() {
+    install(DefaultHeaders)
+    install(AntiFrameHeadersPlugin)
 }
 
 fun Route.configureStaticResources(appConfig: AppConfig) {

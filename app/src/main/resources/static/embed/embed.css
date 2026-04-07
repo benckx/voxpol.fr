@@ -1,0 +1,23 @@
+body {
+    width: 100%;
+    display: block;
+}
+
+main.container {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.embed-footer {
+    text-align: center;
+    margin-top: 8px;
+    font-size: 14px;
+    color: #ffffff;
+}
+
+.embed-footer a,
+.embed-footer a:visited {
+    color: #ffffff;
+    font-weight: bold;
+}

@@ -13,6 +13,9 @@ import dev.encelade.pollaggregator.rendering.normalizePollsterName
 import dev.encelade.wikiscrapper.Candidate
 import java.time.LocalDate
 import kotlin.math.abs
+import kotlin.math.roundToLong
+
+private fun Double.round4(): Double = (this * 10_000).roundToLong() / 10_000.0
 
 /**
  * Aggregate poll data into a format suitable for line charts
@@ -111,9 +114,9 @@ fun buildCandidateTrendChartData(
                 return@mapNotNull null
             }
 
-            val latestAvg = latestValues.average()
-            val previousAvg = previousValues.average()
-            val delta = latestAvg - previousAvg
+            val latestAvg = latestValues.average().round4()
+            val previousAvg = previousValues.average().round4()
+            val delta = (latestAvg - previousAvg).round4()
 
             CandidateTrendDto(
                 name = candidate.lastName,
