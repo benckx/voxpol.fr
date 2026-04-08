@@ -53,8 +53,8 @@ suspend fun ApplicationCall.renderFirstRoundPage(
             script(src = "/static/app.js") { defer = true }
         }
         body {
+            renderSiteHeader("/premier-tour-2027")
             main("container") {
-                h1 { +"Sondages pour le Premier Tour de 2027" }
 
                 if (trendChartData.stats.isNotEmpty()) {
                     h2 { +"Tendances" }

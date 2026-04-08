@@ -23,8 +23,8 @@ suspend fun ApplicationCall.renderSecondRoundPage(
             script(src = "/static/app-second-round.js") { defer = true }
         }
         body {
+            renderSiteHeader("/second-tour-2027")
             main("container") {
-                h1 { +"Sondages pour le Second Tour de 2027" }
 
                 if (testingHypotheses.isEmpty()) {
                     p { +"Aucune donnée disponible pour le moment." }

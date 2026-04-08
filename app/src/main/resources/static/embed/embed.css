@@ -13,11 +13,11 @@ main.container {
     text-align: center;
     margin-top: 8px;
     font-size: 14px;
-    color: #ffffff;
+    color: #123a77;
 }
 
 .embed-footer a,
 .embed-footer a:visited {
-    color: #ffffff;
+    color: #123a77;
     font-weight: bold;
 }

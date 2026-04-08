@@ -66,6 +66,27 @@ private fun HEAD.renderGoogleAnalytics() {
     script { unsafe { +script } }
 }
 
+internal fun FlowContent.renderSiteHeader(activePath: String = "") {
+    header("site-header") {
+        div("site-header-inner") {
+            a(href = "/premier-tour-2027", classes = "site-logo-link") {
+                div("vox-logo") {
+                    span("v letter") { +"V" }
+                    span("o letter") { +"O" }
+                    span("x letter") { +"X" }
+                    span("pol") { +"pol.fr" }
+                }
+            }
+            nav("site-nav") {
+                val firstClass = if (activePath.contains("premier")) "active" else ""
+                val secondClass = if (activePath.contains("second")) "active" else ""
+                a(href = "/premier-tour-2027", classes = firstClass) { +"Premier Tour 2027" }
+                a(href = "/second-tour-2027", classes = secondClass) { +"Second Tour 2027" }
+            }
+        }
+    }
+}
+
 internal fun FlowContent.renderFooter() {
     footer("site-footer") {
         p {

@@ -1,28 +1,117 @@
 body {
     margin: 0;
     font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-    background: #123a77;
-    color: whitesmoke;
+    background: #dce6f5;
+    color: #1a2540;
     font-size: 14px;
     min-height: 100vh;
-    display: flex;
-    justify-content: center;
 }
 
-main.container {
-    margin-top: 10px;
+/* ── Site header ─────────────────────────────────────────── */
+.site-header {
+    background: #123a77;
+    padding: 10px 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+
+.site-header-inner {
     width: min(100%, 1100px);
-    padding: 20px 24px 40px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.site-logo-link {
+    text-decoration: none;
+    line-height: 1;
+}
+
+/* ── VOX logo ────────────────────────────────────────────── */
+.vox-logo {
+    font-family: sans-serif;
+    font-weight: 900;
+    font-size: 52px;
+    letter-spacing: -2px;
+    display: inline-flex;
+    align-items: baseline;
+    line-height: 1;
+}
+
+.letter {
+    text-shadow:
+        /* 1px outline */
+        -1px  0    0 #000,
+         1px  0    0 #000,
+         0   -1px  0 #000,
+         0    1px  0 #000,
+        /* extrusion bottom-left ~2:1 */
+        -1px  1px  0 #000,
+        -2px  1px  0 #000,
+        -3px  2px  0 #000,
+        -4px  2px  0 #000,
+        -5px  3px  0 #000;
+}
+
+.v { color: #6981d2; }
+.o { color: #ffffff; }
+.x { color: #ED2939; }
+
+.pol {
+    font-family: sans-serif;
+    font-weight: 700;
+    font-size: 38px;
+    color: #ffffff;
+    margin-left: 6px;
+    letter-spacing: -0.5px;
+}
+
+/* ── Site nav ────────────────────────────────────────────── */
+.site-nav {
+    display: flex;
+    gap: 28px;
+    align-items: center;
+}
+
+.site-nav a,
+.site-nav a:visited {
+    color: rgba(255,255,255,0.8);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    padding-bottom: 3px;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+}
+
+.site-nav a:hover {
+    color: #fff;
+}
+
+.site-nav a.active,
+.site-nav a.active:visited {
+    color: #fff;
+    border-bottom-color: #fff;
+}
+
+/* ── Main container ──────────────────────────────────────── */
+main.container {
+    margin: 20px auto 40px;
+    width: min(100%, 1100px);
+    padding: 0 24px 40px;
     box-sizing: border-box;
 }
 
 .combination-section {
-    background: whitesmoke;
+    background: #ffffff;
     color: #1f2937;
     border-radius: 20px;
     padding: 39px 37px;
     margin-bottom: 30px;
-    /*box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);*/
+    box-shadow: 0 2px 12px rgba(18, 58, 119, 0.08);
 }
 
 .combination-section h3 {
@@ -56,7 +145,7 @@ main.container h2 {
     margin-top: 40px;
     margin-bottom: 20px;
     font-size: 22px;
-    color: whitesmoke;
+    color: #123a77;
     text-align: center;
     padding-top: 20px;
 }
@@ -142,13 +231,14 @@ a, a:visited {
     margin-top: 20px;
     margin-bottom: 8px;
     text-align: center;
-    color: whitesmoke;
+    color: #123a77;
     font-size: 16px;
+    opacity: 0.75;
 }
 
 .site-footer a,
 .site-footer a:visited {
-    color: whitesmoke;
+    color: #123a77;
     text-decoration: none;
     font-weight: bold;
 }
@@ -241,7 +331,7 @@ a, a:visited {
 .embed-info {
     margin-top: 10px;
     font-size: 13px;
-    color: #cdd8f0;
+    color: #123a77;
 }
 
 .embed-info summary {
@@ -265,8 +355,39 @@ a, a:visited {
 }
 
 @media (max-width: 768px) {
+    .site-header {
+        padding: 8px 12px;
+    }
+
+    .site-header-inner {
+        flex-direction: column;
+        gap: 6px;
+        align-items: center;
+    }
+
+    .vox-logo {
+        font-size: 36px;
+    }
+
+    .pol {
+        font-size: 26px;
+    }
+
+    .site-nav {
+        gap: 20px;
+        justify-content: center;
+    }
+
+    .site-nav a {
+        font-size: 13px;
+    }
+
     main.container {
-        padding: 12px 10px 24px;
+        padding: 0 10px 24px;
+    }
+
+    main.container h2 {
+        margin-top: 0;
     }
 
     .combination-section {
@@ -288,5 +409,9 @@ a, a:visited {
 
     .poll-data .candidate-column {
         width: 56px;
+    }
+
+    .combination-section h3 {
+        font-size: 22px;
     }
 }
