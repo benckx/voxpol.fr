@@ -1,6 +1,7 @@
 package dev.encelade.pollaggregator
 
-import dev.encelade.pollaggregator.rendering.renderHomePage
+import dev.encelade.pollaggregator.rendering.renderFirstRoundPage
+import dev.encelade.pollaggregator.rendering.renderSecondRoundPage
 import dev.encelade.pollaggregator.rendering.renderTrendEmbed
 import dev.encelade.pollaggregator.services.PollService
 import io.ktor.http.*
@@ -29,10 +30,19 @@ private fun Application.module(configArg: String? = null) {
             call.respondText("ok", ContentType.Text.Plain, HttpStatusCode.OK)
         }
         get("/") {
-            call.renderHomePage(
+            call.respondRedirect("/premier-tour-2027", permanent = true)
+        }
+        get("/premier-tour-2027") {
+            call.renderFirstRoundPage(
                 pollService = pollService,
                 gaEnabled = appConfig.gaEnabled,
                 trendWindowDays = appConfig.trendWindowDays,
+            )
+        }
+        get("/second-tour-2027") {
+            call.renderSecondRoundPage(
+                pollService = pollService,
+                gaEnabled = appConfig.gaEnabled,
             )
         }
         get("/embed/trend") {

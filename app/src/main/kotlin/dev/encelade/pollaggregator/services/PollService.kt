@@ -16,6 +16,9 @@ class PollService {
     @Volatile
     private var inMemPollRecords: List<PollRecord> = emptyList()
 
+    @Volatile
+    private var inMemSecondRoundPollRecords: List<PollRecord> = emptyList()
+
     private val scheduler = Executors.newSingleThreadScheduledExecutor { r ->
         Thread(r, "poll-refresh").also { it.isDaemon = true }
     }
@@ -25,8 +28,13 @@ class PollService {
     }
 
     private fun refreshData() {
+        refreshFirstRoundData()
+        refreshSecondRoundData()
+    }
+
+    private fun refreshFirstRoundData() {
         try {
-            logger.info { "Fetching poll data from Wikipedia..." }
+            logger.info { "Fetching first-round poll data from Wikipedia..." }
             val scrapper = WikiScrapper()
             val pollRecords = scrapper.fetchAllStudies()
                 .flatMap { study ->
@@ -53,22 +61,55 @@ class PollService {
                 logger.info {
                     val latestDate = pollRecords.maxOf { it.dateTo }
                     val daysAgo = LocalDate.now().toEpochDay() - latestDate.toEpochDay()
-                    "Loaded ${pollRecords.size} poll records from Wikipedia. Latest data point: $latestDate ($daysAgo day(s) ago)"
+                    "Loaded ${pollRecords.size} first-round poll records from Wikipedia. Latest data point: $latestDate ($daysAgo day(s) ago)"
                 }
                 return
             }
-            logger.warn { "Wikipedia scraping returned no records${if (inMemPollRecords.isEmpty()) ", falling back to CSV" else ", keeping current data"}." }
+            logger.warn { "Wikipedia scraping returned no first-round records${if (inMemPollRecords.isEmpty()) ", falling back to CSV" else ", keeping current data"}." }
         } catch (e: Exception) {
-            logger.error(e) { "Failed to scrape Wikipedia${if (inMemPollRecords.isEmpty()) ", falling back to CSV" else ", keeping current data"}." }
+            logger.error(e) { "Failed to scrape first-round data from Wikipedia${if (inMemPollRecords.isEmpty()) ", falling back to CSV" else ", keeping current data"}." }
         }
 
         if (inMemPollRecords.isEmpty()) loadFromCsv()
     }
 
+    private fun refreshSecondRoundData() {
+        try {
+            logger.info { "Fetching second-round poll data from Wikipedia..." }
+            val scrapper = WikiScrapper()
+            val pollRecords = scrapper.fetchAllSecondRoundStudies()
+                .flatMap { study ->
+                    study.polls.map { poll ->
+                        PollRecord(
+                            pollster = study.pollster,
+                            sourceUrl = study.sourceUrl,
+                            dateFrom = study.minDate,
+                            dateTo = study.maxDate,
+                            sampleSize = study.sampleSize,
+                            scoresByCandidate = poll.results,
+                        )
+                    }
+                }
+
+            if (pollRecords.isNotEmpty()) {
+                inMemSecondRoundPollRecords = pollRecords
+                logger.info {
+                    val latestDate = pollRecords.maxOf { it.dateTo }
+                    val daysAgo = LocalDate.now().toEpochDay() - latestDate.toEpochDay()
+                    "Loaded ${pollRecords.size} second-round poll records from Wikipedia. Latest data point: $latestDate ($daysAgo day(s) ago)"
+                }
+            } else {
+                logger.warn { "Wikipedia scraping returned no second-round records${if (inMemSecondRoundPollRecords.isEmpty()) "" else ", keeping current data"}." }
+            }
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to scrape second-round data from Wikipedia${if (inMemSecondRoundPollRecords.isEmpty()) "" else ", keeping current data"}." }
+        }
+    }
+
     private fun csvPollCount(): Int {
         return try {
             val classLoader = PollService::class.java.classLoader
-            CsvLoader.load("poll-data.csv", classLoader).polls.size
+            CsvLoader.load("poll-data-first-round.csv", classLoader).polls.size
         } catch (e: Exception) {
             logger.warn(e) { "Failed to load CSV for count comparison." }
             0
@@ -77,7 +118,7 @@ class PollService {
 
     private fun loadFromCsv() {
         try {
-            val resourceName = "poll-data.csv"
+            val resourceName = "poll-data-first-round.csv"
             val classLoader = PollService::class.java.classLoader
             val csvData = CsvLoader.load(resourceName, classLoader)
             inMemPollRecords = csvData.polls
@@ -92,13 +133,16 @@ class PollService {
 
     fun allPolls(): List<PollRecord> = inMemPollRecords
 
+
+    private fun allRecords() = inMemPollRecords + inMemSecondRoundPollRecords
+
     fun combinationsByRecency(): List<TestingHypothesis> {
         // most recent poll, then has the most polls
         val comparator =
             compareByDescending<Map.Entry<Set<Candidate>, List<PollRecord>>> { (_, polls) -> polls.maxOf { it.dateTo } }
                 .thenByDescending { (_, polls) -> polls.size }
 
-        return inMemPollRecords
+        return allRecords()
             .groupBy { it.scoresByCandidate.keys }
             .entries
             .sortedWith(comparator)
@@ -106,7 +150,7 @@ class PollService {
     }
 
     fun pollsForTestingHypothesis(hypothesis: TestingHypothesis): List<PollRecord> {
-        return inMemPollRecords
+        return allRecords()
             .filter { it.scoresByCandidate.keys == hypothesis.candidates }
             .sortedByDescending { it.dateTo }
     }

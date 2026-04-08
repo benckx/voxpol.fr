@@ -17,11 +17,11 @@ class WikiScrapper {
     fun fetchAllStudies(): List<Study> =
         fetchFirstRoundPollTables().flatMap { parseStudies(it) }
 
-    fun fetchFirstRoundPollTables(): List<Element> {
-        val doc = Jsoup.connect(URL)
-            .userAgent("Mozilla/5.0 (compatible; poll-aggregator/1.0)")
-            .get()
+    fun fetchAllSecondRoundStudies(): List<Study> =
+        fetchSecondRoundPollTables().flatMap { parseStudies(it) }
 
+    fun fetchFirstRoundPollTables(): List<Element> {
+        val doc = fetchDocument()
         return doc.select("table.wikitable")
             .filter { table ->
                 val firstRow = table.selectFirst("tr")
@@ -31,6 +31,22 @@ class WikiScrapper {
                         extractYearForTable(table) != null
             }
     }
+
+    fun fetchSecondRoundPollTables(): List<Element> {
+        val doc = fetchDocument()
+        return doc.select("table.wikitable")
+            .filter { table ->
+                val firstRow = table.selectFirst("tr")
+                val headers = firstRow?.select("th") ?: return@filter false
+                headers.isNotEmpty() &&
+                        headers.first()?.text() == "Sondeur" &&
+                        isSecondRoundTable(table)
+            }
+    }
+
+    private fun fetchDocument() = Jsoup.connect(URL)
+        .userAgent("Mozilla/5.0 (compatible; poll-aggregator/1.0)")
+        .get()
 
     fun parseColumnMapping(table: Element): Map<Int, Candidate> {
         val candidatesBySlug = Candidate.entries.associateBy { it.wikiSlug }
@@ -287,6 +303,25 @@ class WikiScrapper {
             ?: throw IllegalArgumentException("Missing year for date: '$originalDate'")
     }
 
+    private fun isSecondRoundTable(table: Element): Boolean {
+        // Each second-round table is under an h3 like "Hypothèse Attal – Bardella",
+        // which is itself under the h2 "Sondages concernant le second tour".
+        // We skip h3s and look for the nearest enclosing h2.
+        var current: Element? = table
+        while (current != null) {
+            var sibling = current.previousElementSibling()
+            while (sibling != null) {
+                val h2Text = sibling.select("h2").firstOrNull()?.text()?.normalizeCellText()
+                if (h2Text != null) {
+                    return SECOND_ROUND_HEADING_REGEX.containsMatchIn(h2Text)
+                }
+                sibling = sibling.previousElementSibling()
+            }
+            current = current.parent()
+        }
+        return false
+    }
+
     private fun extractYearForTable(table: Element): Int? {
         val nearestHeadingText = findNearestPreviousHeadingText(table) ?: return null
 
@@ -345,6 +380,7 @@ class WikiScrapper {
     companion object {
         private val NUMBER_REGEX = Regex("""\d+(?:[.,]\d+)?""")
         private val YEAR_HEADING_REGEX = Regex("""^Ann[e\u00e9]e\s+(\d{4})$""", RegexOption.IGNORE_CASE)
+        private val SECOND_ROUND_HEADING_REGEX = Regex("""second\s+tour""", RegexOption.IGNORE_CASE)
         private val SINGLE_DAY_REGEX = Regex("""(\d{1,2}(?:er)?)\s+([\p{L}-]+)(?:\s+(\d{4}))?""")
         private val SAME_MONTH_RANGE_REGEX =
             Regex("""(\d{1,2}(?:er)?)\s*-\s*(\d{1,2}(?:er)?)\s+([\p{L}-]+)(?:\s+(\d{4}))?""")

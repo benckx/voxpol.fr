@@ -21,17 +21,11 @@ suspend fun ApplicationCall.renderTrendEmbed(
     respondHtml {
         lang = "fr"
         head {
-            meta(charset = "utf-8")
-            meta(name = "viewport", content = "width=device-width, initial-scale=1")
+            renderCommonHead(gaEnabled)
             meta(name = "robots", content = "noindex, nofollow")
             title("Tendances Premier Tour - voxpol.fr")
-            link(rel = "stylesheet", href = "/static/style.css", type = ContentType.Text.CSS.toString())
             link(rel = "stylesheet", href = "/static/embed/embed.css", type = ContentType.Text.CSS.toString())
-            script(src = "https://cdn.jsdelivr.net/npm/apexcharts") {}
-            script(src = "/static/utils.js") { defer = true }
-            script(src = "/static/trend-chart.js") { defer = true }
             script(src = "/static/embed/embed-trend.js") { defer = true }
-            if (gaEnabled) renderGoogleAnalytics()
         }
         body {
             main("container") {

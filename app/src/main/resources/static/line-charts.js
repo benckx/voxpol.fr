@@ -4,6 +4,11 @@ const buildLineChartOptions = (payload) => {
         data,
     }));
 
+    const allValues = payload.series.flatMap(({data}) => data.map(({y}) => y));
+    const dataMax = Math.max(...allValues);
+    const yMax = Math.ceil(dataMax * 10) / 10;
+    const tickAmount = Math.round(yMax * 10);
+
     return {
         chart: {
             type: "line",
@@ -21,7 +26,6 @@ const buildLineChartOptions = (payload) => {
         series,
         colors: payload.series.map(({color}) => color),
         stroke: {
-            curve: "smooth",
             width: 3,
         },
         markers: {
@@ -44,8 +48,11 @@ const buildLineChartOptions = (payload) => {
             },
         },
         yaxis: {
+            min: 0,
+            max: yMax,
+            tickAmount: tickAmount,
             labels: {
-                formatter: (value) => `${(value * 100).toFixed(1)}%`,
+                formatter: (value) => `${(value * 100).toFixed(0)}%`,
             },
         },
         tooltip: {
