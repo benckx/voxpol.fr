@@ -2,6 +2,7 @@ package dev.encelade.pollaggregator.services
 
 import dev.encelade.pollaggregator.model.PollRecord
 import dev.encelade.wikiscrapper.Candidate
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.time.LocalDate
 
 data class CsvData(
@@ -11,11 +12,22 @@ data class CsvData(
 
 object CsvLoader {
 
+    private val logger = KotlinLogging.logger {}
+
     private val candidatesByName = Candidate.entries.associateBy { it.name }
     private val requiredColumns = setOf("pollster", "date_from", "date_to", "sample_size")
     private val metadataColumns = requiredColumns + "source_url"
 
-    fun load(resourceName: String, classLoader: ClassLoader): CsvData {
+    fun safeLoad(resourceName: String): List<PollRecord>? {
+        return try {
+            load(resourceName, CsvLoader::class.java.classLoader).polls
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to load poll data from CSV resource '$resourceName'" }
+            null
+        }
+    }
+
+    private fun load(resourceName: String, classLoader: ClassLoader): CsvData {
         val csv = classLoader.getResourceAsStream(resourceName)
             ?.bufferedReader()
             ?.use { it.readText() }

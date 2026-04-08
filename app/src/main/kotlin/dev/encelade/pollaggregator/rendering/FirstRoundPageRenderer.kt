@@ -17,10 +17,10 @@ suspend fun ApplicationCall.renderFirstRoundPage(
     val testingHypotheses = pollService.combinationsByRecency().filter { it.candidates.size > 2 }
     val cutoffDate = LocalDate.now().minusDays(365)
     val trendChartData = buildCandidateTrendChartData(
-        polls = pollService.allPolls(),
+        polls = pollService.getFirstRoundPolls(),
         windowDays = trendWindowDays,
     )
-    val globalIntervalsData = buildGlobalIntervalsChartData(pollService.pollsBefore(cutoffDate))
+    val globalIntervalsData = buildGlobalIntervalsChartData(pollService.getFirstRoundPollsBefore(cutoffDate))
     val distinctDateCountByCombination = testingHypotheses.associateWith { testingHypothesis ->
         pollService.pollsForTestingHypothesis(testingHypothesis)
             .map { it.dateTo }

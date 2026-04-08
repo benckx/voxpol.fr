@@ -14,7 +14,7 @@ suspend fun ApplicationCall.renderTrendEmbed(
     trendWindowDays: Int,
 ) {
     val trendChartData = buildCandidateTrendChartData(
-        polls = pollService.allPolls(),
+        polls = pollService.getFirstRoundPolls(),
         windowDays = trendWindowDays,
     )
 

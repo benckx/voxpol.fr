@@ -2,6 +2,7 @@ package dev.encelade.pollaggregator.services
 
 import dev.encelade.pollaggregator.model.PollRecord
 import dev.encelade.wikiscrapper.Candidate
+import dev.encelade.wikiscrapper.Study
 import dev.encelade.wikiscrapper.TestingHypothesis
 import dev.encelade.wikiscrapper.WikiScrapper
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -14,7 +15,7 @@ class PollService {
     private val logger = KotlinLogging.logger {}
 
     @Volatile
-    private var inMemPollRecords: List<PollRecord> = emptyList()
+    private var inMemFirstRoundPollRecords: List<PollRecord> = emptyList()
 
     @Volatile
     private var inMemSecondRoundPollRecords: List<PollRecord> = emptyList()
@@ -28,15 +29,52 @@ class PollService {
     }
 
     private fun refreshData() {
-        refreshFirstRoundData()
-        refreshSecondRoundData()
+        refreshRoundData(
+            roundLabel = "first-round",
+            fetchStudies = WikiScrapper::fetchAllStudies,
+            getCurrentRecords = { inMemFirstRoundPollRecords },
+            setRecords = { records -> inMemFirstRoundPollRecords = records },
+            csvResourceName = "poll-data-first-round.csv",
+        )
+
+        refreshRoundData(
+            roundLabel = "second-round",
+            fetchStudies = WikiScrapper::fetchAllSecondRoundStudies,
+            getCurrentRecords = { inMemSecondRoundPollRecords },
+            setRecords = { records -> inMemSecondRoundPollRecords = records },
+            csvResourceName = "poll-data-second-round.csv",
+        )
     }
 
-    private fun refreshFirstRoundData() {
+    /**
+     * Shared refresh logic for both rounds.
+     *
+     * @param roundLabel      human-readable label used in log messages ("first-round" / "second-round")
+     * @param fetchStudies    how to retrieve studies from the [WikiScrapper]
+     * @param getCurrentRecords reader for the current in-memory records (used to decide log wording)
+     * @param setRecords      writer that stores freshly-fetched records in memory
+     * @param csvResourceName CSV resource used as a sanity-check threshold and fallback
+     */
+    private fun refreshRoundData(
+        roundLabel: String,
+        fetchStudies: (WikiScrapper) -> List<Study>,
+        getCurrentRecords: () -> List<PollRecord>,
+        setRecords: (List<PollRecord>) -> Unit,
+        csvResourceName: String,
+    ) {
+        fun loadFromCsv() {
+            val pollsFromCsv = CsvLoader.safeLoad(csvResourceName)
+            if (pollsFromCsv != null) {
+                setRecords(pollsFromCsv)
+                logger.info { "Loaded ${pollsFromCsv.size} $roundLabel poll records from CSV fallback." }
+            } else {
+                logger.error { "Failed to load CSV fallback for $roundLabel." }
+            }
+        }
+
         try {
-            logger.info { "Fetching first-round poll data from Wikipedia..." }
-            val scrapper = WikiScrapper()
-            val pollRecords = scrapper.fetchAllStudies()
+            logger.info { "Fetching $roundLabel poll data from Wikipedia..." }
+            val pollRecords = fetchStudies(WikiScrapper())
                 .flatMap { study ->
                     study.polls.map { poll ->
                         PollRecord(
@@ -51,90 +89,34 @@ class PollService {
                 }
 
             if (pollRecords.isNotEmpty()) {
-                val csvCount = csvPollCount()
+                val csvCount = CsvLoader.safeLoad(csvResourceName)?.size ?: 0
                 if (csvCount > 0 && pollRecords.size * 2 <= csvCount) {
                     logger.warn { "Wikipedia returned only ${pollRecords.size} records, which is half or less of CSV count ($csvCount). Falling back to CSV." }
                     loadFromCsv()
                     return
                 }
-                inMemPollRecords = pollRecords
+                setRecords(pollRecords)
                 logger.info {
                     val latestDate = pollRecords.maxOf { it.dateTo }
                     val daysAgo = LocalDate.now().toEpochDay() - latestDate.toEpochDay()
-                    "Loaded ${pollRecords.size} first-round poll records from Wikipedia. Latest data point: $latestDate ($daysAgo day(s) ago)"
+                    "Loaded ${pollRecords.size} $roundLabel poll records from Wikipedia. Latest data point: $latestDate ($daysAgo day(s) ago)"
                 }
                 return
             }
-            logger.warn { "Wikipedia scraping returned no first-round records${if (inMemPollRecords.isEmpty()) ", falling back to CSV" else ", keeping current data"}." }
+            logger.warn { "Wikipedia scraping returned no $roundLabel records${if (getCurrentRecords().isEmpty()) ", falling back to CSV" else ", keeping current data"}." }
         } catch (e: Exception) {
-            logger.error(e) { "Failed to scrape first-round data from Wikipedia${if (inMemPollRecords.isEmpty()) ", falling back to CSV" else ", keeping current data"}." }
+            logger.error(e) { "Failed to scrape $roundLabel data from Wikipedia${if (getCurrentRecords().isEmpty()) ", falling back to CSV" else ", keeping current data"}." }
         }
 
-        if (inMemPollRecords.isEmpty()) loadFromCsv()
+        if (getCurrentRecords().isEmpty()) loadFromCsv()
     }
 
-    private fun refreshSecondRoundData() {
-        try {
-            logger.info { "Fetching second-round poll data from Wikipedia..." }
-            val scrapper = WikiScrapper()
-            val pollRecords = scrapper.fetchAllSecondRoundStudies()
-                .flatMap { study ->
-                    study.polls.map { poll ->
-                        PollRecord(
-                            pollster = study.pollster,
-                            sourceUrl = study.sourceUrl,
-                            dateFrom = study.minDate,
-                            dateTo = study.maxDate,
-                            sampleSize = study.sampleSize,
-                            scoresByCandidate = poll.results,
-                        )
-                    }
-                }
+    fun getFirstRoundPollsBefore(cutoffDate: LocalDate) =
+        inMemFirstRoundPollRecords.filter { !it.dateTo.isBefore(cutoffDate) }
 
-            if (pollRecords.isNotEmpty()) {
-                inMemSecondRoundPollRecords = pollRecords
-                logger.info {
-                    val latestDate = pollRecords.maxOf { it.dateTo }
-                    val daysAgo = LocalDate.now().toEpochDay() - latestDate.toEpochDay()
-                    "Loaded ${pollRecords.size} second-round poll records from Wikipedia. Latest data point: $latestDate ($daysAgo day(s) ago)"
-                }
-            } else {
-                logger.warn { "Wikipedia scraping returned no second-round records${if (inMemSecondRoundPollRecords.isEmpty()) "" else ", keeping current data"}." }
-            }
-        } catch (e: Exception) {
-            logger.error(e) { "Failed to scrape second-round data from Wikipedia${if (inMemSecondRoundPollRecords.isEmpty()) "" else ", keeping current data"}." }
-        }
-    }
+    fun getFirstRoundPolls(): List<PollRecord> = inMemFirstRoundPollRecords
 
-    private fun csvPollCount(): Int {
-        return try {
-            val classLoader = PollService::class.java.classLoader
-            CsvLoader.load("poll-data-first-round.csv", classLoader).polls.size
-        } catch (e: Exception) {
-            logger.warn(e) { "Failed to load CSV for count comparison." }
-            0
-        }
-    }
-
-    private fun loadFromCsv() {
-        try {
-            val resourceName = "poll-data-first-round.csv"
-            val classLoader = PollService::class.java.classLoader
-            val csvData = CsvLoader.load(resourceName, classLoader)
-            inMemPollRecords = csvData.polls
-            logger.info { "Loaded ${inMemPollRecords.size} poll records from CSV fallback." }
-        } catch (e: Exception) {
-            logger.error(e) { "Failed to load CSV fallback." }
-        }
-    }
-
-    fun pollsBefore(cutoffDate: LocalDate) =
-        inMemPollRecords.filter { !it.dateTo.isBefore(cutoffDate) }
-
-    fun allPolls(): List<PollRecord> = inMemPollRecords
-
-
-    private fun allRecords() = inMemPollRecords + inMemSecondRoundPollRecords
+    private fun allPollRecords() = inMemFirstRoundPollRecords + inMemSecondRoundPollRecords
 
     fun combinationsByRecency(): List<TestingHypothesis> {
         // most recent poll, then has the most polls
@@ -142,7 +124,7 @@ class PollService {
             compareByDescending<Map.Entry<Set<Candidate>, List<PollRecord>>> { (_, polls) -> polls.maxOf { it.dateTo } }
                 .thenByDescending { (_, polls) -> polls.size }
 
-        return allRecords()
+        return allPollRecords()
             .groupBy { it.scoresByCandidate.keys }
             .entries
             .sortedWith(comparator)
@@ -150,7 +132,7 @@ class PollService {
     }
 
     fun pollsForTestingHypothesis(hypothesis: TestingHypothesis): List<PollRecord> {
-        return allRecords()
+        return allPollRecords()
             .filter { it.scoresByCandidate.keys == hypothesis.candidates }
             .sortedByDescending { it.dateTo }
     }
