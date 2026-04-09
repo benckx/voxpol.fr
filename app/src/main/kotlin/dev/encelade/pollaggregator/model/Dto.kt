@@ -59,3 +59,17 @@ data class CandidateTrendChartDto(
     val windowDays: Int,
     val stats: List<CandidateTrendDto>,
 )
+
+@Serializable
+data class ThresholdChartPointDto(
+    val x: String,
+    val avg: Double,
+    val min: Double,
+    val max: Double,
+)
+
+@Serializable
+data class ThresholdChartDto(
+    val data: List<ThresholdChartPointDto>,
+)
+

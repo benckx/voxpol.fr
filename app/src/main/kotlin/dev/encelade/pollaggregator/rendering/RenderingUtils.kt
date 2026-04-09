@@ -1,6 +1,8 @@
 package dev.encelade.pollaggregator.rendering
 
+import dev.encelade.pollaggregator.model.CandidateTrendChartDto
 import dev.encelade.pollaggregator.model.PollRecord
+import dev.encelade.pollaggregator.model.ThresholdChartDto
 import dev.encelade.pollaggregator.services.buildLineChartData
 import dev.encelade.wikiscrapper.Candidate
 import dev.encelade.wikiscrapper.TestingHypothesis
@@ -49,6 +51,7 @@ internal fun HEAD.renderCommonHead(gaEnabled: Boolean) {
     script(src = "/static/trend-chart.js") { defer = true }
     script(src = "/static/intervals-chart.js") { defer = true }
     script(src = "/static/line-charts.js") { defer = true }
+    script(src = "/static/threshold-chart.js") { defer = true }
     if (gaEnabled) renderGoogleAnalytics()
 }
 
@@ -117,7 +120,7 @@ internal fun FlowContent.renderFooter() {
 }
 
 internal fun FlowContent.renderLineChartsAndTableForHypothesis(
-    pollsForCombo: List<PollRecord>,
+    pollsForTestingHypothesis: List<PollRecord>,
     testingHypothesis: TestingHypothesis,
     sectionIndex: Int,
     chartIdPrefix: String = "poll-chart",
@@ -170,10 +173,10 @@ internal fun FlowContent.renderLineChartsAndTableForHypothesis(
     fun FlowContent.lineChart() {
         val chartId = "$chartIdPrefix-$sectionIndex"
         val chartDataId = "$chartId-data"
-        val hasMultipleDates = pollsForCombo.map { it.dateTo }.distinct().size >= 2
-        if (pollsForCombo.size < 2 || !hasMultipleDates) return
+        val hasMultipleDates = pollsForTestingHypothesis.map { it.dateTo }.distinct().size >= 2
+        if (pollsForTestingHypothesis.size < 2 || !hasMultipleDates) return
 
-        val data = buildLineChartData(candidatesInOrder, pollsForCombo)
+        val data = buildLineChartData(candidatesInOrder, pollsForTestingHypothesis)
         div("poll-line-chart") {
             id = chartId
             attributes["data-chart-data-id"] = chartDataId
@@ -198,7 +201,7 @@ internal fun FlowContent.renderLineChartsAndTableForHypothesis(
                     }
                 }
                 tbody {
-                    pollsForCombo.forEach { poll ->
+                    pollsForTestingHypothesis.forEach { poll ->
                         tr {
                             pollsterCell(poll)
                             dateCell(poll)
@@ -207,6 +210,44 @@ internal fun FlowContent.renderLineChartsAndTableForHypothesis(
                     }
                 }
             }
+        }
+    }
+}
+
+internal fun FlowContent.renderSecondRoundThresholdChart(dto: ThresholdChartDto) {
+    fun FlowContent.renderQualificationThresholdSection() {
+        val chartId = "threshold-chart"
+        val chartDataId = "$chartId-data"
+        section("combination-section") {
+            div("threshold-line-chart") {
+                id = chartId
+                attributes["data-chart-data-id"] = chartDataId
+            }
+            script(type = "application/json") {
+                id = chartDataId
+                unsafe { +Json.encodeToString(dto) }
+            }
+        }
+    }
+
+
+    if (dto.data.size >= 2) {
+        h2 { +"Seuil d'accès au second tour" }
+        p { +"Score moyen du 2ème candidat dans les sondages du premier tour, agrégé par mois. " }
+        renderQualificationThresholdSection()
+    }
+}
+
+internal fun FlowContent.renderTrendWidget(dto: CandidateTrendChartDto) {
+    section("combination-section") {
+        div("candidate-trend-chart") {
+            id = "candidate-trend-chart"
+            attributes["data-chart-data-id"] = "candidate-trend-data"
+        }
+        script(type = "application/json") {
+            id = "candidate-trend-data"
+            attributes["class"] = "poll-chart-data"
+            unsafe { +Json.encodeToString(dto) }
         }
     }
 }

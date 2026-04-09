@@ -25,7 +25,7 @@ class PollService {
     }
 
     init {
-        scheduler.scheduleAtFixedRate(::refreshData, 0, 4, TimeUnit.HOURS)
+        scheduler.scheduleAtFixedRate(::refreshData, 0, 12, TimeUnit.HOURS)
     }
 
     private fun refreshData() {

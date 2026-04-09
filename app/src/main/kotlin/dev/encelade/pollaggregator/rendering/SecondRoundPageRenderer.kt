@@ -1,8 +1,9 @@
 package dev.encelade.pollaggregator.rendering
 
 import dev.encelade.pollaggregator.services.PollService
-import io.ktor.server.application.ApplicationCall
-import io.ktor.server.html.respondHtml
+import dev.encelade.pollaggregator.services.buildQualificationThresholdChartData
+import io.ktor.server.application.*
+import io.ktor.server.html.*
 import kotlinx.html.*
 
 suspend fun ApplicationCall.renderSecondRoundPage(
@@ -10,6 +11,29 @@ suspend fun ApplicationCall.renderSecondRoundPage(
     gaEnabled: Boolean,
 ) {
     val testingHypotheses = pollService.combinationsByRecency().filter { it.candidates.size == 2 }
+    val thresholdData = buildQualificationThresholdChartData(pollService.getFirstRoundPolls())
+
+    fun FlowContent.renderLineChartsAndTableForHypotheses() {
+        if (testingHypotheses.isEmpty()) {
+            p { +"Aucune donnée disponible pour le moment." }
+        } else {
+            h2 { +"Hypothèses de second tour" }
+            testingHypotheses.forEachIndexed { index, testingHypothesis ->
+                val title = testingHypothesis.candidatesInOrder.joinToString(" vs ") { it.lastName }
+                val pollsForTestingHypothesis = pollService.pollsForTestingHypothesis(testingHypothesis)
+
+                renderLineChartsAndTableForHypothesis(
+                    pollsForTestingHypothesis = pollsForTestingHypothesis,
+                    testingHypothesis = testingHypothesis,
+                    sectionIndex = index,
+                    chartIdPrefix = "poll-chart-sr",
+                    title = title,
+                    highlightTopScores = 1,
+                )
+            }
+        }
+
+    }
 
     respondHtml {
         lang = "fr"
@@ -25,24 +49,8 @@ suspend fun ApplicationCall.renderSecondRoundPage(
         body {
             renderSiteHeader("/second-tour-2027")
             main("container") {
-
-                if (testingHypotheses.isEmpty()) {
-                    p { +"Aucune donnée disponible pour le moment." }
-                } else {
-                    h2 { +"Hypothèses de second tour" }
-                    testingHypotheses.forEachIndexed { index, testingHypothesis ->
-                        val title = testingHypothesis.candidatesInOrder.joinToString(" vs ") { it.lastName }
-                        renderLineChartsAndTableForHypothesis(
-                            pollsForCombo = pollService.pollsForTestingHypothesis(testingHypothesis),
-                            testingHypothesis = testingHypothesis,
-                            sectionIndex = index,
-                            chartIdPrefix = "poll-chart-sr",
-                            title = title,
-                            highlightTopScores = 1,
-                        )
-                    }
-                }
-
+                renderLineChartsAndTableForHypotheses()
+                renderSecondRoundThresholdChart(thresholdData)
                 renderFooter()
             }
         }

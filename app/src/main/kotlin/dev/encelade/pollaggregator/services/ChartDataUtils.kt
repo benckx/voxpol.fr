@@ -8,6 +8,8 @@ import dev.encelade.pollaggregator.model.PollChartDto
 import dev.encelade.pollaggregator.model.PollChartPointDto
 import dev.encelade.pollaggregator.model.PollChartSeriesDto
 import dev.encelade.pollaggregator.model.PollRecord
+import dev.encelade.pollaggregator.model.ThresholdChartDto
+import dev.encelade.pollaggregator.model.ThresholdChartPointDto
 import dev.encelade.pollaggregator.model.TrendDirectionDto
 import dev.encelade.pollaggregator.rendering.normalizePollsterName
 import dev.encelade.wikiscrapper.Candidate
@@ -140,3 +142,31 @@ fun buildCandidateTrendChartData(
         stats = stats,
     )
 }
+
+/**
+ * For each first-round poll, computes the 2nd-highest candidate score (= the score needed to
+ * qualify for the second round). Results are grouped and averaged by calendar month
+ * (using the study's max day / [PollRecord.dateTo]), returning avg, min, and max per month.
+ */
+fun buildQualificationThresholdChartData(firstRoundPolls: List<PollRecord>): ThresholdChartDto {
+    val data = firstRoundPolls
+        .groupBy { it.dateTo.withDayOfMonth(1) }
+        .entries
+        .sortedBy { (date, _) -> date }
+        .mapNotNull { (date, polls) ->
+            val secondHighestValues = polls.mapNotNull { poll ->
+                poll.scoresByCandidate.values
+                    .sortedDescending()
+                    .getOrNull(1)
+            }
+            if (secondHighestValues.isEmpty()) null
+            else ThresholdChartPointDto(
+                x = date.toString(),
+                avg = secondHighestValues.average(),
+                min = secondHighestValues.min(),
+                max = secondHighestValues.max(),
+            )
+        }
+    return ThresholdChartDto(data = data)
+}
+

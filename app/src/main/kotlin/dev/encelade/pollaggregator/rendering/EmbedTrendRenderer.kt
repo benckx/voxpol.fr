@@ -6,7 +6,6 @@ import io.ktor.http.*
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.html.respondHtml
 import kotlinx.html.*
-import kotlinx.serialization.json.Json
 
 suspend fun ApplicationCall.renderTrendEmbed(
     pollService: PollService,
@@ -29,17 +28,7 @@ suspend fun ApplicationCall.renderTrendEmbed(
         }
         body {
             main("container") {
-                section("combination-section") {
-                    div("candidate-trend-chart") {
-                        id = "candidate-trend-chart"
-                        attributes["data-chart-data-id"] = "candidate-trend-data"
-                    }
-                    script(type = "application/json") {
-                        id = "candidate-trend-data"
-                        attributes["class"] = "poll-chart-data"
-                        unsafe { +Json.encodeToString(trendChartData) }
-                    }
-                }
+                renderTrendWidget(trendChartData)
                 p("embed-footer") {
                     a(href = "https://voxpol.fr") {
                         target = "_blank"
