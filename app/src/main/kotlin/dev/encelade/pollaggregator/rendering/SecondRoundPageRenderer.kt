@@ -1,5 +1,6 @@
 package dev.encelade.pollaggregator.rendering
 
+import dev.encelade.pollaggregator.AppConfig
 import dev.encelade.pollaggregator.services.PollService
 import dev.encelade.pollaggregator.services.buildQualificationThresholdChartData
 import io.ktor.server.application.*
@@ -8,9 +9,9 @@ import kotlinx.html.*
 
 suspend fun ApplicationCall.renderSecondRoundPage(
     pollService: PollService,
-    gaEnabled: Boolean,
-    minified: Boolean = false,
+    appConfig: AppConfig,
 ) {
+    val (gaEnabled, _, _, _, minified) = appConfig
     val testingHypotheses = pollService.combinationsByRecency().filter { it.candidates.size == 2 }
     val thresholdData = buildQualificationThresholdChartData(pollService.getFirstRoundPolls())
 

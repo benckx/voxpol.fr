@@ -1,5 +1,6 @@
 package dev.encelade.pollaggregator.rendering
 
+import dev.encelade.pollaggregator.AppConfig
 import dev.encelade.pollaggregator.model.CandidateTrendChartDto
 import dev.encelade.pollaggregator.model.GlobalIntervalsChartDto
 import dev.encelade.pollaggregator.services.buildCandidateTrendChartData
@@ -14,11 +15,10 @@ import java.time.LocalDate
 
 suspend fun ApplicationCall.renderFirstRoundPage(
     pollService: PollService,
-    gaEnabled: Boolean,
-    trendWindowDays: Int,
+    appConfig: AppConfig,
     canonicalUrl: String,
-    minified: Boolean = false,
 ) {
+    val (gaEnabled, trendWindowDays, _, _, minified) = appConfig
     val testingHypotheses = pollService.combinationsByRecency().filter { it.candidates.size > 2 }
     val cutoffDate = LocalDate.now().minusDays(365)
     val distinctDateCountByCombination = testingHypotheses.associateWith { testingHypothesis ->

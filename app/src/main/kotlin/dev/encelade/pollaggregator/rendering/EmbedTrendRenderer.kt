@@ -1,5 +1,6 @@
 package dev.encelade.pollaggregator.rendering
 
+import dev.encelade.pollaggregator.AppConfig
 import dev.encelade.pollaggregator.services.PollService
 import dev.encelade.pollaggregator.services.buildCandidateTrendChartData
 import io.ktor.http.*
@@ -9,10 +10,9 @@ import kotlinx.html.*
 
 suspend fun ApplicationCall.renderTrendEmbed(
     pollService: PollService,
-    gaEnabled: Boolean,
-    trendWindowDays: Int,
-    minified: Boolean = false,
+    appConfig: AppConfig,
 ) {
+    val (gaEnabled, trendWindowDays, _, _, minified) = appConfig
     val trendChartData = buildCandidateTrendChartData(
         polls = pollService.getFirstRoundPolls(),
         windowDays = trendWindowDays,
