@@ -1,6 +1,7 @@
 package dev.encelade.pollaggregator
 
 import io.ktor.http.CacheControl
+import io.ktor.http.HttpHeaders
 import io.ktor.server.application.Application
 import io.ktor.server.application.createApplicationPlugin
 import io.ktor.server.application.install
@@ -19,7 +20,9 @@ private val AntiFrameHeadersPlugin = createApplicationPlugin("AntiFrameHeaders")
 }
 
 fun Application.configureHeaders() {
-    install(DefaultHeaders)
+    install(DefaultHeaders) {
+        header(HttpHeaders.Server, "voxpol.fr")
+    }
     install(AntiFrameHeadersPlugin)
 }
 
