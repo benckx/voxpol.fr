@@ -8,6 +8,8 @@ repositories {
 
 dependencies {
     implementation(libs.logback.classic.lib)
+    implementation(libs.klogger)
+    implementation(project(":wiki-scrapper"))
 }
 
 java {
@@ -19,7 +21,7 @@ java {
 tasks.register<JavaExec>("minify") {
     group = "deployment"
     description = "Minify JS and CSS assets using the Toptal API"
-    mainClass = "dev.encelade.scripts.MinifyKt"
+    mainClass = "fr.voxpol.scripts.MinifyKt"
     classpath = sourceSets.main.get().runtimeClasspath
     workingDir = rootProject.projectDir
 }
@@ -27,8 +29,7 @@ tasks.register<JavaExec>("minify") {
 tasks.register<JavaExec>("removeMinified") {
     group = "deployment"
     description = "Remove all minified JS and CSS files"
-    mainClass = "dev.encelade.scripts.RemoveMinifiedKt"
+    mainClass = "fr.voxpol.scripts.RemoveMinifiedKt"
     classpath = sourceSets.main.get().runtimeClasspath
     workingDir = rootProject.projectDir
 }
-

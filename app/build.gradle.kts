@@ -27,7 +27,7 @@ java {
 }
 
 application {
-    mainClass = "dev.encelade.pollaggregator.AppKt"
+    mainClass = "fr.voxpol.webapp.AppKt"
 }
 
 tasks.processResources {

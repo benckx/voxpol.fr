@@ -8,9 +8,9 @@ repositories {
 }
 
 dependencies {
-    implementation(libs.jsoup)
-    implementation(libs.klogger)
     implementation(libs.logback.classic.lib)
+    implementation(libs.klogger)
+    implementation(libs.jsoup)
 }
 
 java {
