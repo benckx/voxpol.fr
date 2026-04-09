@@ -72,7 +72,7 @@ private fun HEAD.renderGoogleAnalytics() {
 internal fun FlowContent.renderSiteHeader(activePath: String = "") {
     header("site-header") {
         div("site-header-inner") {
-            a(href = "/premier-tour-2027", classes = "site-logo-link") {
+            a(href = "/", classes = "site-logo-link") {
                 div("vox-logo") {
                     span("v letter") { +"V" }
                     span("o letter") { +"O" }
