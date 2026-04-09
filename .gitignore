@@ -46,3 +46,7 @@ build
 .kotlin
 
 *.sh
+
+*.min.js
+*.min.css
+minified_files.csv

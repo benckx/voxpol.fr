@@ -36,6 +36,7 @@ private fun Application.module(configArg: String? = null) {
                 gaEnabled = appConfig.gaEnabled,
                 trendWindowDays = appConfig.trendWindowDays,
                 canonicalUrl = homePageCanonicalUrl,
+                minified = appConfig.minified,
             )
         }
         get("/premier-tour-2027") {
@@ -44,12 +45,14 @@ private fun Application.module(configArg: String? = null) {
                 gaEnabled = appConfig.gaEnabled,
                 trendWindowDays = appConfig.trendWindowDays,
                 canonicalUrl = homePageCanonicalUrl,
+                minified = appConfig.minified,
             )
         }
         get("/second-tour-2027") {
             call.renderSecondRoundPage(
                 pollService = pollService,
                 gaEnabled = appConfig.gaEnabled,
+                minified = appConfig.minified,
             )
         }
         get("/embed/trend") {
@@ -57,6 +60,7 @@ private fun Application.module(configArg: String? = null) {
                 pollService = pollService,
                 gaEnabled = appConfig.gaEnabled,
                 trendWindowDays = appConfig.trendWindowDays,
+                minified = appConfig.minified,
             )
         }
         get("/sitemap.xml") {

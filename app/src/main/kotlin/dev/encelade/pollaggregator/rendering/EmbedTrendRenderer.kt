@@ -11,6 +11,7 @@ suspend fun ApplicationCall.renderTrendEmbed(
     pollService: PollService,
     gaEnabled: Boolean,
     trendWindowDays: Int,
+    minified: Boolean = false,
 ) {
     val trendChartData = buildCandidateTrendChartData(
         polls = pollService.getFirstRoundPolls(),
@@ -20,11 +21,11 @@ suspend fun ApplicationCall.renderTrendEmbed(
     respondHtml {
         lang = "fr"
         head {
-            renderCommonHead(gaEnabled)
+            renderCommonHead(gaEnabled, minified)
             meta(name = "robots", content = "noindex, nofollow")
             title("Tendances Premier Tour - voxpol.fr")
-            link(rel = "stylesheet", href = "/static/embed/embed.css", type = ContentType.Text.CSS.toString())
-            script(src = "/static/embed/embed-trend.js") { defer = true }
+            link(rel = "stylesheet", href = minPath("/static/embed/embed.css", minified), type = ContentType.Text.CSS.toString())
+            script(src = minPath("/static/embed/embed-trend.js", minified)) { defer = true }
         }
         body {
             main("container") {

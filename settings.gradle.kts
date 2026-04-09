@@ -5,3 +5,4 @@ plugins {
 rootProject.name = "voxpol.fr"
 include("app")
 include("wiki-scrapper")
+include("scripts")

@@ -38,20 +38,29 @@ internal fun FlowOrPhrasingContent.candidateWikiAnchor(candidate: Candidate) {
     }
 }
 
-internal fun HEAD.renderCommonHead(gaEnabled: Boolean) {
+internal fun minPath(path: String, minified: Boolean): String {
+    if (!minified) return path
+    return when {
+        path.endsWith(".js") -> path.dropLast(3) + ".min.js"
+        path.endsWith(".css") -> path.dropLast(4) + ".min.css"
+        else -> path
+    }
+}
+
+internal fun HEAD.renderCommonHead(gaEnabled: Boolean, minified: Boolean = false) {
     val metaKeywords = "sondages, présidentielle, 2027, premier tour, second tour, France, agrégateur, candidats"
 
     meta(charset = "utf-8")
     meta(name = "viewport", content = "width=device-width, initial-scale=1")
     meta(name = "author", content = "benckx")
     meta(name = "keywords", content = metaKeywords)
-    link(rel = "stylesheet", href = "/static/style.css", type = ContentType.Text.CSS.toString())
+    link(rel = "stylesheet", href = minPath("/static/style.css", minified), type = ContentType.Text.CSS.toString())
     script(src = "https://cdn.jsdelivr.net/npm/apexcharts") {}
-    script(src = "/static/utils.js") { defer = true }
-    script(src = "/static/trend-chart.js") { defer = true }
-    script(src = "/static/intervals-chart.js") { defer = true }
-    script(src = "/static/line-charts.js") { defer = true }
-    script(src = "/static/threshold-chart.js") { defer = true }
+    script(src = minPath("/static/utils.js", minified)) { defer = true }
+    script(src = minPath("/static/trend-chart.js", minified)) { defer = true }
+    script(src = minPath("/static/intervals-chart.js", minified)) { defer = true }
+    script(src = minPath("/static/line-charts.js", minified)) { defer = true }
+    script(src = minPath("/static/threshold-chart.js", minified)) { defer = true }
     if (gaEnabled) renderGoogleAnalytics()
 }
 

@@ -9,6 +9,7 @@ import kotlinx.html.*
 suspend fun ApplicationCall.renderSecondRoundPage(
     pollService: PollService,
     gaEnabled: Boolean,
+    minified: Boolean = false,
 ) {
     val testingHypotheses = pollService.combinationsByRecency().filter { it.candidates.size == 2 }
     val thresholdData = buildQualificationThresholdChartData(pollService.getFirstRoundPolls())
@@ -38,13 +39,13 @@ suspend fun ApplicationCall.renderSecondRoundPage(
     respondHtml {
         lang = "fr"
         head {
-            renderCommonHead(gaEnabled)
+            renderCommonHead(gaEnabled, minified)
             meta(
                 name = "description",
                 content = "Agrégateur de sondages pour le second tour de l'élection présidentielle française de 2027."
             )
             title("Sondages Second Tour 2027 - voxpol.fr")
-            script(src = "/static/app-second-round.js") { defer = true }
+            script(src = minPath("/static/app-second-round.js", minified)) { defer = true }
         }
         body {
             renderSiteHeader("/second-tour-2027")

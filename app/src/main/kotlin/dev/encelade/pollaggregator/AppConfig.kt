@@ -14,6 +14,7 @@ data class AppConfig(
     val trendWindowDays: Int,
     val jsCache: AssetCacheConfig,
     val cssCache: AssetCacheConfig,
+    val minified: Boolean,
 )
 
 private val logger = KotlinLogging.logger {}
@@ -47,6 +48,8 @@ fun parseAppConfig(configArg: String? = null): AppConfig {
         ?.coerceAtLeast(0)
         ?: 3600
 
+    val minified = config.propertyOrNull("staticAssets.minified")?.getString()?.toBoolean() ?: false
+
     val appConfig = AppConfig(
         gaEnabled = gaEnabled,
         trendWindowDays = trendWindowDays,
@@ -58,6 +61,7 @@ fun parseAppConfig(configArg: String? = null): AppConfig {
             enabled = cssCacheEnabled,
             maxAgeSeconds = cssCacheMaxAgeSeconds,
         ),
+        minified = minified,
     )
 
     logger.info {

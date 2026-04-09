@@ -17,6 +17,7 @@ suspend fun ApplicationCall.renderFirstRoundPage(
     gaEnabled: Boolean,
     trendWindowDays: Int,
     canonicalUrl: String,
+    minified: Boolean = false,
 ) {
     val testingHypotheses = pollService.combinationsByRecency().filter { it.candidates.size > 2 }
     val cutoffDate = LocalDate.now().minusDays(365)
@@ -51,14 +52,14 @@ suspend fun ApplicationCall.renderFirstRoundPage(
     respondHtml {
         lang = "fr"
         head {
-            renderCommonHead(gaEnabled)
+            renderCommonHead(gaEnabled, minified)
             link(rel = "canonical", href = canonicalUrl) {}
             meta(
                 name = "description",
                 content = "Agrégateur de sondages pour le premier tour de l'élection présidentielle française de 2027."
             )
             title("Sondages Premier Tour 2027 - voxpol.fr")
-            script(src = "/static/app.js") { defer = true }
+            script(src = minPath("/static/app.js", minified)) { defer = true }
         }
         body {
             renderSiteHeader("/premier-tour-2027")

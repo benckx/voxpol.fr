@@ -30,6 +30,10 @@ application {
     mainClass = "dev.encelade.pollaggregator.AppKt"
 }
 
+tasks.processResources {
+    dependsOn(":scripts:minify")
+}
+
 tasks.shadowJar {
     archiveClassifier.set("")
     manifest {
