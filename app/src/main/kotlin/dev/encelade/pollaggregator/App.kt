@@ -21,6 +21,7 @@ fun main(args: Array<String>) {
 private fun Application.module(configArg: String? = null) {
     val appConfig = parseAppConfig(configArg)
     val pollService = PollService()
+    val homePageCanonicalUrl = "https://voxpol.fr/premier-tour-2027"
 
     configureHeaders()
     routing {
@@ -30,13 +31,19 @@ private fun Application.module(configArg: String? = null) {
             call.respondText("ok", ContentType.Text.Plain, HttpStatusCode.OK)
         }
         get("/") {
-            call.respondRedirect("/premier-tour-2027", permanent = true)
+            call.renderFirstRoundPage(
+                pollService = pollService,
+                gaEnabled = appConfig.gaEnabled,
+                trendWindowDays = appConfig.trendWindowDays,
+                canonicalUrl = homePageCanonicalUrl,
+            )
         }
         get("/premier-tour-2027") {
             call.renderFirstRoundPage(
                 pollService = pollService,
                 gaEnabled = appConfig.gaEnabled,
                 trendWindowDays = appConfig.trendWindowDays,
+                canonicalUrl = homePageCanonicalUrl,
             )
         }
         get("/second-tour-2027") {

@@ -13,6 +13,7 @@ suspend fun ApplicationCall.renderFirstRoundPage(
     pollService: PollService,
     gaEnabled: Boolean,
     trendWindowDays: Int,
+    canonicalUrl: String,
 ) {
     val testingHypotheses = pollService.combinationsByRecency().filter { it.candidates.size > 2 }
     val cutoffDate = LocalDate.now().minusDays(365)
@@ -45,6 +46,7 @@ suspend fun ApplicationCall.renderFirstRoundPage(
         lang = "fr"
         head {
             renderCommonHead(gaEnabled)
+            link(rel = "canonical", href = canonicalUrl) {}
             meta(
                 name = "description",
                 content = "Agrégateur de sondages pour le premier tour de l'élection présidentielle française de 2027."
