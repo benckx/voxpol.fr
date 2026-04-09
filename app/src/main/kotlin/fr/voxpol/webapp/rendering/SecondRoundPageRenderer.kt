@@ -1,8 +1,8 @@
-package fx.volpol.webapp.rendering
+package fr.voxpol.webapp.rendering
 
-import fx.volpol.webapp.AppConfig
-import fx.volpol.webapp.services.PollService
-import fx.volpol.webapp.services.buildQualificationThresholdChartData
+import fr.voxpol.webapp.AppConfig
+import fr.voxpol.webapp.services.PollService
+import fr.voxpol.webapp.services.buildQualificationThresholdChartData
 import io.ktor.server.application.*
 import io.ktor.server.html.*
 import kotlinx.html.*

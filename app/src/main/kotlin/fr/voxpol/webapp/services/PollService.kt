@@ -1,6 +1,6 @@
-package fx.volpol.webapp.services
+package fr.voxpol.webapp.services
 
-import fx.volpol.webapp.model.PollRecord
+import fr.voxpol.webapp.model.PollRecord
 import fr.voxpol.wikiscrapper.Candidate
 import fr.voxpol.wikiscrapper.Study
 import fr.voxpol.wikiscrapper.TestingHypothesis

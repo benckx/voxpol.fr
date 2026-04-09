@@ -1,4 +1,4 @@
-package fx.volpol.webapp.model
+package fr.voxpol.webapp.model
 
 import fr.voxpol.wikiscrapper.Candidate
 import java.time.LocalDate

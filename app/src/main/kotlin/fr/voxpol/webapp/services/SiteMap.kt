@@ -1,4 +1,4 @@
-package fx.volpol.webapp.services
+package fr.voxpol.webapp.services
 
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode

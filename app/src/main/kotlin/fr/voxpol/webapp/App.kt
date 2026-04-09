@@ -1,10 +1,10 @@
-package fx.volpol.webapp
+package fr.voxpol.webapp
 
-import fx.volpol.webapp.rendering.renderFirstRoundPage
-import fx.volpol.webapp.rendering.renderSecondRoundPage
-import fx.volpol.webapp.rendering.renderTrendEmbed
-import fx.volpol.webapp.services.PollService
-import fx.volpol.webapp.services.siteMap
+import fr.voxpol.webapp.rendering.renderFirstRoundPage
+import fr.voxpol.webapp.rendering.renderSecondRoundPage
+import fr.voxpol.webapp.rendering.renderTrendEmbed
+import fr.voxpol.webapp.services.PollService
+import fr.voxpol.webapp.services.siteMap
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*

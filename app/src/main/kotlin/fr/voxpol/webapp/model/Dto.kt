@@ -1,4 +1,4 @@
-package fx.volpol.webapp.model
+package fr.voxpol.webapp.model
 
 import kotlinx.serialization.Serializable
 
