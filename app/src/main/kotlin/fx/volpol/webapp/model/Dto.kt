@@ -72,4 +72,3 @@ data class ThresholdChartPointDto(
 data class ThresholdChartDto(
     val data: List<ThresholdChartPointDto>,
 )
-
