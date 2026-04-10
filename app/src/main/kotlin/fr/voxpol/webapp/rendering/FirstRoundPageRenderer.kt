@@ -1,15 +1,12 @@
 package fr.voxpol.webapp.rendering
 
 import fr.voxpol.webapp.AppConfig
-import fr.voxpol.webapp.model.CandidateTrendChartDto
-import fr.voxpol.webapp.model.GlobalIntervalsChartDto
 import fr.voxpol.webapp.services.PollService
 import fr.voxpol.webapp.services.buildCandidateTrendChartData
 import fr.voxpol.webapp.services.buildGlobalIntervalsChartData
 import fr.voxpol.webapp.services.buildQualificationThresholdChartData
 import fr.voxpol.webapp.utils.koin
 import fr.voxpol.webapp.utils.respondHtmlCached
-import fr.voxpol.wikiscrapper.TestingHypothesis
 import io.ktor.server.application.*
 import kotlinx.html.*
 import kotlinx.serialization.json.Json
@@ -23,39 +20,7 @@ private const val CANONICAL_URL = "https://voxpol.fr/premier-tour-2027"
 suspend fun ApplicationCall.renderFirstRoundPage() = respondHtmlCached {
     // config
     val gaEnabled = appConfig.gaEnabled
-    val trendWindowDays = appConfig.trendWindowDays
     val minified = appConfig.minified
-    val intervalsCutOffDate = LocalDate.now().minusDays(365)
-
-    // trends
-    val trendDescription = "Evolution moyenne par candidat entre les $trendWindowDays derniers jours " +
-            "et les $trendWindowDays jours precedents. La durée de cette fenêtre sera réduire à l'approche du scrutin."
-    val trendChartData = buildCandidateTrendChartData(
-        polls = pollService.getFirstRoundPolls(),
-        windowDays = trendWindowDays,
-    )
-
-    // min/max ranges
-    val intervalsDescription = "Ce graphique présente la plage des intentions de vote " +
-            "pour chaque candidat, basée sur les sondages réalisés " +
-            "au cours des 365 derniers jours. La barre représente " +
-            "l'intervalle entre les intentions de vote les plus basses " +
-            "et les plus hautes enregistrées pour chaque candidat."
-    val intervalsData =
-        buildGlobalIntervalsChartData(pollService.getFirstRoundPollsBefore(intervalsCutOffDate))
-
-    // testing hypotheses (i.e. combinations)
-    val testingHypotheses = pollService.combinationsByRecency().filter { it.candidates.size > 2 }
-    val distinctDateCountByCombination = testingHypotheses.associateWith { testingHypothesis ->
-        pollService.pollsForTestingHypothesis(testingHypothesis)
-            .map { it.dateTo }
-            .distinct()
-            .size
-    }
-    val sectionsDescription =
-        "Les sections sont organisées par hypothèse (c'est-à-dire par combinaison de candidats), en partant du sondage le plus récent."
-    val testingHypothesesToRender = testingHypotheses
-        .filter { distinctDateCountByCombination.getValue(it) >= 3 }
 
     // second round threshold
     val thresholdData = buildQualificationThresholdChartData(pollService.getFirstRoundPolls())
@@ -74,20 +39,26 @@ suspend fun ApplicationCall.renderFirstRoundPage() = respondHtmlCached {
     body {
         renderSiteHeader("/premier-tour-2027")
         main("container") {
-            renderTrendWidget(trendDescription, trendChartData)
-            renderRangeWidget(intervalsDescription, intervalsData)
-            renderLineCharts(sectionsDescription, testingHypothesesToRender)
+            renderTrendWidget()
+            renderRangeWidget()
+            renderLineCharts()
             renderSecondRoundThresholdChart(thresholdData)
             renderFooter()
         }
     }
 }
 
-private fun FlowContent.renderTrendWidget(description: String, dto: CandidateTrendChartDto) {
-    if (dto.stats.isNotEmpty()) {
+private fun FlowContent.renderTrendWidget() {
+    val trendWindowDays = appConfig.trendWindowDays
+    val trendChartDto = buildCandidateTrendChartData(pollService.getFirstRoundPolls(), trendWindowDays)
+
+    if (trendChartDto.stats.isNotEmpty()) {
         h2 { +"Tendances" }
-        p { +description }
-        renderTrendWidget(dto)
+        p {
+            +("Evolution moyenne par candidat entre les $trendWindowDays derniers jours " +
+                    "et les $trendWindowDays jours precedents. La durée de cette fenêtre sera réduire à l'approche du scrutin.")
+        }
+        renderTrendWidget(trendChartDto)
         details("embed-info") {
             summary { +"Intégrer ce widget à votre site" }
             p { +"Copiez le code suivant pour intégrer le graphique de tendances:" }
@@ -98,8 +69,17 @@ private fun FlowContent.renderTrendWidget(description: String, dto: CandidateTre
     }
 }
 
-private fun FlowContent.renderRangeWidget(description: String, dto: GlobalIntervalsChartDto) {
+private fun FlowContent.renderRangeWidget() {
+    val intervalsCutOffDate = LocalDate.now().minusDays(365)
+    val dto = buildGlobalIntervalsChartData(pollService.getFirstRoundPollsBefore(intervalsCutOffDate))
+
     if (dto.stats.isNotEmpty()) {
+        val description = "Ce graphique présente la plage des intentions de vote " +
+                "pour chaque candidat, basée sur les sondages réalisés " +
+                "au cours des 365 derniers jours. La barre représente " +
+                "l'intervalle entre les intentions de vote les plus basses " +
+                "et les plus hautes enregistrées pour chaque candidat."
+
         h2 { +"Intervalles" }
         p { +description }
         section("combination-section") {
@@ -118,10 +98,18 @@ private fun FlowContent.renderRangeWidget(description: String, dto: GlobalInterv
     }
 }
 
-private fun FlowContent.renderLineCharts(
-    description: String,
-    testingHypothesesToRender: List<TestingHypothesis>
-) {
+private fun FlowContent.renderLineCharts() {
+    val testingHypotheses = pollService.combinationsByRecency().filter { it.candidates.size > 2 }
+    val distinctDateCountByCombination = testingHypotheses.associateWith { testingHypothesis ->
+        pollService.pollsForTestingHypothesis(testingHypothesis)
+            .map { it.dateTo }
+            .distinct()
+            .size
+    }
+    val description =
+        "Les sections sont organisées par hypothèse (c'est-à-dire par combinaison de candidats), en partant du sondage le plus récent."
+    val testingHypothesesToRender = testingHypotheses.filter { distinctDateCountByCombination.getValue(it) >= 3 }
+
     h2 { +"Hypothèses les plus testées" }
     p { +description }
     testingHypothesesToRender.forEachIndexed { index, testingHypothesis ->

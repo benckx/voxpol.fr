@@ -13,7 +13,6 @@ import fr.voxpol.webapp.model.ThresholdChartPointDto
 import fr.voxpol.webapp.model.TrendDirectionDto
 import fr.voxpol.webapp.rendering.normalizePollsterName
 import fr.voxpol.wikiscrapper.Candidate
-import java.time.LocalDate
 import kotlin.math.abs
 import kotlin.math.roundToLong
 
@@ -91,17 +90,18 @@ fun buildGlobalIntervalsChartData(
 
 fun buildCandidateTrendChartData(
     polls: List<PollRecord>,
-    windowDays: Int,
-    now: LocalDate = LocalDate.now(),
+    windowDays: Int
 ): CandidateTrendChartDto {
     require(windowDays > 0) { "windowDays must be > 0" }
 
-    val latestStart = now.minusDays(windowDays.toLong() - 1)
+    val latestEnd = polls.maxOfOrNull { it.dateTo }
+        ?: return CandidateTrendChartDto(windowDays = windowDays, stats = emptyList())
+    val latestStart = latestEnd.minusDays(windowDays.toLong() - 1)
     val previousEnd = latestStart.minusDays(1)
     val previousStart = previousEnd.minusDays(windowDays.toLong() - 1)
 
     val latestWindowPolls = polls.filter { poll ->
-        !poll.dateTo.isBefore(latestStart) && !poll.dateTo.isAfter(now)
+        !poll.dateTo.isBefore(latestStart) && !poll.dateTo.isAfter(latestEnd)
     }
     val previousWindowPolls = polls.filter { poll ->
         !poll.dateTo.isBefore(previousStart) && !poll.dateTo.isAfter(previousEnd)

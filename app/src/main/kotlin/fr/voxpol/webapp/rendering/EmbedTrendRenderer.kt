@@ -16,11 +16,7 @@ suspend fun ApplicationCall.renderTrendEmbed() = respondHtmlCached {
     val gaEnabled = appConfig.gaEnabled
     val trendWindowDays = appConfig.trendWindowDays
     val minified = appConfig.minified
-
-    val trendChartData = buildCandidateTrendChartData(
-        polls = pollService.getFirstRoundPolls(),
-        windowDays = trendWindowDays,
-    )
+    val trendChartData = buildCandidateTrendChartData(pollService.getFirstRoundPolls(), trendWindowDays)
 
     lang = "fr"
     head {
