@@ -34,4 +34,5 @@ class HtmlCache {
         logger.info { "HTML cache entry stored: '$key' (${html.length} chars)." }
         cache.put(key, html)
     }
+
 }

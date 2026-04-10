@@ -8,8 +8,8 @@ import fr.voxpol.webapp.utils.respondHtmlCached
 import io.ktor.server.application.*
 import kotlinx.html.*
 
-private val pollService: PollService by koin()
-private val appConfig: AppConfig by koin()
+private val pollService by koin<PollService>()
+private val appConfig by koin<AppConfig>()
 
 suspend fun ApplicationCall.renderSecondRoundPage() = respondHtmlCached {
     val gaEnabled = appConfig.gaEnabled

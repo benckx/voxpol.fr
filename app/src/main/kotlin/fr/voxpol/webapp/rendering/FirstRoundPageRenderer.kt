@@ -15,8 +15,8 @@ import kotlinx.html.*
 import kotlinx.serialization.json.Json
 import java.time.LocalDate
 
-private val pollService: PollService by koin()
-private val appConfig: AppConfig by koin()
+private val pollService by koin<PollService>()
+private val appConfig by koin<AppConfig>()
 
 private const val CANONICAL_URL = "https://voxpol.fr/premier-tour-2027"
 

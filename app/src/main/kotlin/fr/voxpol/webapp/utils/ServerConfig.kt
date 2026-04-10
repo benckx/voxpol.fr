@@ -11,7 +11,7 @@ import io.ktor.server.plugins.defaultheaders.DefaultHeaders
 import io.ktor.server.request.path
 import io.ktor.server.routing.Route
 
-private val appConfig: AppConfig by koin()
+private val appConfig by koin<AppConfig>()
 
 private val AntiFrameHeadersPlugin = createApplicationPlugin("AntiFrameHeaders") {
     onCall { call ->

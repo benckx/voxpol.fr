@@ -14,12 +14,13 @@ private val pollService by koin<PollService>()
 private val htmlCache by koin<HtmlCache>()
 
 /**
- * Drop-in replacement for `respondHtml` that caches the rendered HTML string.
- * The request path is used as the cache key automatically.
+ * Drop-in replacement for `respondHtml` that caches the rendered HTML string
  */
 suspend fun ApplicationCall.respondHtmlCached(block: HTML.() -> Unit) {
     val key = request.path()
-    val html = if (pollService.isNotEmpty()) {
+    val useCache = pollService.isNotEmpty()
+
+    val html = if (useCache) {
         htmlCache.get(key) ?: buildString {
             append("<!DOCTYPE html>\n")
             appendHTML().html(block = block)
@@ -30,5 +31,6 @@ suspend fun ApplicationCall.respondHtmlCached(block: HTML.() -> Unit) {
             appendHTML().html(block = block)
         }
     }
+
     respondText(html, ContentType.Text.Html)
 }

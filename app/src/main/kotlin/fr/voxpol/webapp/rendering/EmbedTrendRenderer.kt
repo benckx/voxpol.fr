@@ -10,7 +10,7 @@ import io.ktor.server.application.*
 import kotlinx.html.*
 
 private val appConfig by koin<AppConfig>()
-private val pollService: PollService by koin()
+private val pollService by koin<PollService>()
 
 suspend fun ApplicationCall.renderTrendEmbed() = respondHtmlCached {
     val gaEnabled = appConfig.gaEnabled
