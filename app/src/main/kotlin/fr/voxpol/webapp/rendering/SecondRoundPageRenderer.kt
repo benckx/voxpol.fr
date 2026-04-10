@@ -1,46 +1,22 @@
 package fr.voxpol.webapp.rendering
 
 import fr.voxpol.webapp.AppConfig
-import fr.voxpol.webapp.services.HtmlCache
-import fr.voxpol.webapp.services.HtmlCacheKey
-import fr.voxpol.webapp.services.PollService
-import fr.voxpol.webapp.services.buildQualificationThresholdChartData
-import fr.voxpol.webapp.services.respondHtmlCached
+import fr.voxpol.webapp.utils.koin
+import fr.voxpol.webapp.services.*
 import io.ktor.server.application.*
 import kotlinx.html.*
 
-suspend fun ApplicationCall.renderSecondRoundPage(
-    pollService: PollService,
-    appConfig: AppConfig,
-    htmlCache: HtmlCache,
-) {
-    val (gaEnabled, _, _, _, minified) = appConfig
-    val testingHypotheses = pollService.combinationsByRecency().filter { it.candidates.size == 2 }
+private val pollService: PollService by koin()
+private val htmlCache: HtmlCache by koin()
+private val appConfig: AppConfig by koin()
+
+suspend fun ApplicationCall.renderSecondRoundPage() {
+    val gaEnabled = appConfig.gaEnabled
+    val minified = appConfig.minified
+
     val thresholdData = buildQualificationThresholdChartData(pollService.getFirstRoundPolls())
 
-    fun FlowContent.renderLineChartsAndTableForHypotheses() {
-        if (testingHypotheses.isEmpty()) {
-            p { +"Aucune donnée disponible pour le moment." }
-        } else {
-            h2 { +"Hypothèses de second tour" }
-            testingHypotheses.forEachIndexed { index, testingHypothesis ->
-                val title = testingHypothesis.candidatesInOrder.joinToString(" vs ") { it.lastName }
-                val pollsForTestingHypothesis = pollService.pollsForTestingHypothesis(testingHypothesis)
-
-                renderLineChartsAndTableForHypothesis(
-                    pollsForTestingHypothesis = pollsForTestingHypothesis,
-                    testingHypothesis = testingHypothesis,
-                    sectionIndex = index,
-                    chartIdPrefix = "poll-chart-sr",
-                    title = title,
-                    highlightTopScores = 1,
-                )
-            }
-        }
-
-    }
-
-    respondHtmlCached(htmlCache, HtmlCacheKey.SECOND_ROUND) {
+    respondHtmlCached(htmlCache) {
         lang = "fr"
         head {
             renderCommonHead(gaEnabled, minified)
@@ -58,6 +34,29 @@ suspend fun ApplicationCall.renderSecondRoundPage(
                 renderSecondRoundThresholdChart(thresholdData)
                 renderFooter()
             }
+        }
+    }
+}
+
+private fun FlowContent.renderLineChartsAndTableForHypotheses() {
+    val testingHypotheses = pollService.combinationsByRecency().filter { it.candidates.size == 2 }
+
+    if (testingHypotheses.isEmpty()) {
+        p { +"Aucune donnée disponible pour le moment." }
+    } else {
+        h2 { +"Hypothèses de second tour" }
+        testingHypotheses.forEachIndexed { index, testingHypothesis ->
+            val title = testingHypothesis.candidatesInOrder.joinToString(" vs ") { it.lastName }
+            val pollsForTestingHypothesis = pollService.pollsForTestingHypothesis(testingHypothesis)
+
+            renderLineChartsAndTableForHypothesis(
+                pollsForTestingHypothesis = pollsForTestingHypothesis,
+                testingHypothesis = testingHypothesis,
+                sectionIndex = index,
+                chartIdPrefix = "poll-chart-sr",
+                title = title,
+                highlightTopScores = 1,
+            )
         }
     }
 }

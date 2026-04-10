@@ -4,6 +4,7 @@
 [versions]
 caffeine = "3.2.0"
 jsoup = "1.22.1"
+koin = "4.1.0"
 ktor = "3.4.2"
 kotlinx-serialization = "1.10.0"
 kotlin-logging = "8.0.01"
@@ -12,6 +13,8 @@ logback = "1.5.20"
 [libraries]
 caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version.ref = "caffeine" }
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
+koin-ktor = { module = "io.insert-koin:koin-ktor", version.ref = "koin" }
+koin-logger-slf4j = { module = "io.insert-koin:koin-logger-slf4j", version.ref = "koin" }
 ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
 ktor-server-html-builder = { module = "io.ktor:ktor-server-html-builder", version.ref = "ktor" }
 ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor" }

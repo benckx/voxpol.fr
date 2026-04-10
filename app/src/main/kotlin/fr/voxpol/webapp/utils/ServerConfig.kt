@@ -1,5 +1,6 @@
-package fr.voxpol.webapp
+package fr.voxpol.webapp.utils
 
+import fr.voxpol.webapp.AppConfig
 import io.ktor.http.CacheControl
 import io.ktor.http.HttpHeaders
 import io.ktor.server.application.Application

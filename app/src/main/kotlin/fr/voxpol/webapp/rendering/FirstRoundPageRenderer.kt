@@ -1,13 +1,13 @@
 package fr.voxpol.webapp.rendering
 
 import fr.voxpol.webapp.AppConfig
+import fr.voxpol.webapp.utils.koin
 import fr.voxpol.webapp.model.CandidateTrendChartDto
 import fr.voxpol.webapp.model.GlobalIntervalsChartDto
+import fr.voxpol.webapp.services.HtmlCache
+import fr.voxpol.webapp.services.PollService
 import fr.voxpol.webapp.services.buildCandidateTrendChartData
 import fr.voxpol.webapp.services.buildGlobalIntervalsChartData
-import fr.voxpol.webapp.services.HtmlCache
-import fr.voxpol.webapp.services.HtmlCacheKey
-import fr.voxpol.webapp.services.PollService
 import fr.voxpol.webapp.services.buildQualificationThresholdChartData
 import fr.voxpol.webapp.services.respondHtmlCached
 import io.ktor.server.application.ApplicationCall
@@ -16,15 +16,19 @@ import kotlinx.serialization.json.Json
 import java.time.LocalDate
 import kotlin.collections.distinct
 
-suspend fun ApplicationCall.renderFirstRoundPage(
-    pollService: PollService,
-    appConfig: AppConfig,
-    canonicalUrl: String,
-    htmlCache: HtmlCache,
-) {
-    val (gaEnabled, trendWindowDays, _, _, minified) = appConfig
+private val pollService: PollService by koin()
+private val htmlCache: HtmlCache by koin()
+private val appConfig: AppConfig by koin()
+
+private const val CANONICAL_URL = "https://voxpol.fr/premier-tour-2027"
+
+suspend fun ApplicationCall.renderFirstRoundPage() {
+    val gaEnabled = appConfig.gaEnabled
+    val trendWindowDays = appConfig.trendWindowDays
+    val minified = appConfig.minified
+    val intervalsCutOffDate = LocalDate.now().minusDays(365)
+
     val testingHypotheses = pollService.combinationsByRecency().filter { it.candidates.size > 2 }
-    val cutoffDate = LocalDate.now().minusDays(365)
     val distinctDateCountByCombination = testingHypotheses.associateWith { testingHypothesis ->
         pollService.pollsForTestingHypothesis(testingHypothesis)
             .map { it.dateTo }
@@ -44,7 +48,7 @@ suspend fun ApplicationCall.renderFirstRoundPage(
             "au cours des 365 derniers jours. La barre représente " +
             "l'intervalle entre les intentions de vote les plus basses " +
             "et les plus hautes enregistrées pour chaque candidat."
-    val globalIntervalsData = buildGlobalIntervalsChartData(pollService.getFirstRoundPollsBefore(cutoffDate))
+    val globalIntervalsData = buildGlobalIntervalsChartData(pollService.getFirstRoundPollsBefore(intervalsCutOffDate))
 
     val sectionsDescription =
         "Les sections sont organisées par hypothèse (c'est-à-dire par combinaison de candidats), en partant du sondage le plus récent."
@@ -53,11 +57,11 @@ suspend fun ApplicationCall.renderFirstRoundPage(
 
     val thresholdData = buildQualificationThresholdChartData(pollService.getFirstRoundPolls())
 
-    respondHtmlCached(htmlCache, HtmlCacheKey.FIRST_ROUND) {
+    respondHtmlCached(htmlCache) {
         lang = "fr"
         head {
             renderCommonHead(gaEnabled, minified)
-            link(rel = "canonical", href = canonicalUrl) {}
+            link(rel = "canonical", href = CANONICAL_URL) {}
             meta(
                 name = "description",
                 content = "Agrégateur de sondages pour le premier tour de l'élection présidentielle française de 2027."
