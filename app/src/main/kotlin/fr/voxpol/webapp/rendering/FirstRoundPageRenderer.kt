@@ -1,41 +1,33 @@
 package fr.voxpol.webapp.rendering
 
 import fr.voxpol.webapp.AppConfig
-import fr.voxpol.webapp.utils.koin
 import fr.voxpol.webapp.model.CandidateTrendChartDto
 import fr.voxpol.webapp.model.GlobalIntervalsChartDto
-import fr.voxpol.webapp.services.HtmlCache
 import fr.voxpol.webapp.services.PollService
 import fr.voxpol.webapp.services.buildCandidateTrendChartData
 import fr.voxpol.webapp.services.buildGlobalIntervalsChartData
 import fr.voxpol.webapp.services.buildQualificationThresholdChartData
-import fr.voxpol.webapp.services.respondHtmlCached
-import io.ktor.server.application.ApplicationCall
+import fr.voxpol.webapp.utils.koin
+import fr.voxpol.webapp.utils.respondHtmlCached
+import fr.voxpol.wikiscrapper.TestingHypothesis
+import io.ktor.server.application.*
 import kotlinx.html.*
 import kotlinx.serialization.json.Json
 import java.time.LocalDate
-import kotlin.collections.distinct
 
 private val pollService: PollService by koin()
-private val htmlCache: HtmlCache by koin()
 private val appConfig: AppConfig by koin()
 
 private const val CANONICAL_URL = "https://voxpol.fr/premier-tour-2027"
 
-suspend fun ApplicationCall.renderFirstRoundPage() {
+suspend fun ApplicationCall.renderFirstRoundPage() = respondHtmlCached {
+    // config
     val gaEnabled = appConfig.gaEnabled
     val trendWindowDays = appConfig.trendWindowDays
     val minified = appConfig.minified
     val intervalsCutOffDate = LocalDate.now().minusDays(365)
 
-    val testingHypotheses = pollService.combinationsByRecency().filter { it.candidates.size > 2 }
-    val distinctDateCountByCombination = testingHypotheses.associateWith { testingHypothesis ->
-        pollService.pollsForTestingHypothesis(testingHypothesis)
-            .map { it.dateTo }
-            .distinct()
-            .size
-    }
-
+    // trends
     val trendDescription = "Evolution moyenne par candidat entre les $trendWindowDays derniers jours " +
             "et les $trendWindowDays jours precedents. La durée de cette fenêtre sera réduire à l'approche du scrutin."
     val trendChartData = buildCandidateTrendChartData(
@@ -43,52 +35,50 @@ suspend fun ApplicationCall.renderFirstRoundPage() {
         windowDays = trendWindowDays,
     )
 
-    val rangeDescription = "Ce graphique présente la plage des intentions de vote " +
+    // min/max ranges
+    val intervalsDescription = "Ce graphique présente la plage des intentions de vote " +
             "pour chaque candidat, basée sur les sondages réalisés " +
             "au cours des 365 derniers jours. La barre représente " +
             "l'intervalle entre les intentions de vote les plus basses " +
             "et les plus hautes enregistrées pour chaque candidat."
-    val globalIntervalsData = buildGlobalIntervalsChartData(pollService.getFirstRoundPollsBefore(intervalsCutOffDate))
+    val intervalsData =
+        buildGlobalIntervalsChartData(pollService.getFirstRoundPollsBefore(intervalsCutOffDate))
 
+    // testing hypotheses (i.e. combinations)
+    val testingHypotheses = pollService.combinationsByRecency().filter { it.candidates.size > 2 }
+    val distinctDateCountByCombination = testingHypotheses.associateWith { testingHypothesis ->
+        pollService.pollsForTestingHypothesis(testingHypothesis)
+            .map { it.dateTo }
+            .distinct()
+            .size
+    }
     val sectionsDescription =
         "Les sections sont organisées par hypothèse (c'est-à-dire par combinaison de candidats), en partant du sondage le plus récent."
     val testingHypothesesToRender = testingHypotheses
         .filter { distinctDateCountByCombination.getValue(it) >= 3 }
 
+    // second round threshold
     val thresholdData = buildQualificationThresholdChartData(pollService.getFirstRoundPolls())
 
-    respondHtmlCached(htmlCache) {
-        lang = "fr"
-        head {
-            renderCommonHead(gaEnabled, minified)
-            link(rel = "canonical", href = CANONICAL_URL) {}
-            meta(
-                name = "description",
-                content = "Agrégateur de sondages pour le premier tour de l'élection présidentielle française de 2027."
-            )
-            title("Sondages Premier Tour 2027 - voxpol.fr")
-            script(src = minPath("/static/app.js", minified)) { defer = true }
-        }
-        body {
-            renderSiteHeader("/premier-tour-2027")
-            main("container") {
-                renderTrendWidget(trendDescription, trendChartData)
-                renderRangeWidget(rangeDescription, globalIntervalsData)
-
-                // Render line charts sections
-                h2 { +"Hypothèses les plus testées" }
-                p { +sectionsDescription }
-                testingHypothesesToRender.forEachIndexed { index, testingHypothesis ->
-                    renderLineChartsAndTableForHypothesis(
-                        pollService.pollsForTestingHypothesis(testingHypothesis),
-                        testingHypothesis,
-                        index
-                    )
-                }
-
-                renderSecondRoundThresholdChart(thresholdData)
-                renderFooter()
-            }
+    lang = "fr"
+    head {
+        renderCommonHead(gaEnabled, minified)
+        link(rel = "canonical", href = CANONICAL_URL) {}
+        meta(
+            name = "description",
+            content = "Agrégateur de sondages pour le premier tour de l'élection présidentielle française de 2027."
+        )
+        title("Sondages Premier Tour 2027 - voxpol.fr")
+        script(src = minPath("/static/app.js", minified)) { defer = true }
+    }
+    body {
+        renderSiteHeader("/premier-tour-2027")
+        main("container") {
+            renderTrendWidget(trendDescription, trendChartData)
+            renderRangeWidget(intervalsDescription, intervalsData)
+            renderLineCharts(sectionsDescription, testingHypothesesToRender)
+            renderSecondRoundThresholdChart(thresholdData)
+            renderFooter()
         }
     }
 }
@@ -125,5 +115,20 @@ private fun FlowContent.renderRangeWidget(description: String, dto: GlobalInterv
                 }
             }
         }
+    }
+}
+
+private fun FlowContent.renderLineCharts(
+    description: String,
+    testingHypothesesToRender: List<TestingHypothesis>
+) {
+    h2 { +"Hypothèses les plus testées" }
+    p { +description }
+    testingHypothesesToRender.forEachIndexed { index, testingHypothesis ->
+        renderLineChartsAndTableForHypothesis(
+            pollService.pollsForTestingHypothesis(testingHypothesis),
+            testingHypothesis,
+            index
+        )
     }
 }

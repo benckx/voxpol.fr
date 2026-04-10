@@ -111,6 +111,8 @@ class PollService() {
         if (getCurrentRecords().isEmpty()) loadFromCsv()
     }
 
+    fun isNotEmpty() = inMemFirstRoundPollRecords.isNotEmpty() && inMemSecondRoundPollRecords.isNotEmpty()
+
     fun getFirstRoundPollsBefore(cutoffDate: LocalDate) =
         inMemFirstRoundPollRecords.filter { !it.dateTo.isBefore(cutoffDate) }
 

@@ -1,39 +1,37 @@
 package fr.voxpol.webapp.rendering
 
 import fr.voxpol.webapp.AppConfig
+import fr.voxpol.webapp.services.PollService
+import fr.voxpol.webapp.services.buildQualificationThresholdChartData
 import fr.voxpol.webapp.utils.koin
-import fr.voxpol.webapp.services.*
+import fr.voxpol.webapp.utils.respondHtmlCached
 import io.ktor.server.application.*
 import kotlinx.html.*
 
 private val pollService: PollService by koin()
-private val htmlCache: HtmlCache by koin()
 private val appConfig: AppConfig by koin()
 
-suspend fun ApplicationCall.renderSecondRoundPage() {
+suspend fun ApplicationCall.renderSecondRoundPage() = respondHtmlCached {
     val gaEnabled = appConfig.gaEnabled
     val minified = appConfig.minified
-
     val thresholdData = buildQualificationThresholdChartData(pollService.getFirstRoundPolls())
 
-    respondHtmlCached(htmlCache) {
-        lang = "fr"
-        head {
-            renderCommonHead(gaEnabled, minified)
-            meta(
-                name = "description",
-                content = "Agrégateur de sondages pour le second tour de l'élection présidentielle française de 2027."
-            )
-            title("Sondages Second Tour 2027 - voxpol.fr")
-            script(src = minPath("/static/app-second-round.js", minified)) { defer = true }
-        }
-        body {
-            renderSiteHeader("/second-tour-2027")
-            main("container") {
-                renderLineChartsAndTableForHypotheses()
-                renderSecondRoundThresholdChart(thresholdData)
-                renderFooter()
-            }
+    lang = "fr"
+    head {
+        renderCommonHead(gaEnabled, minified)
+        meta(
+            name = "description",
+            content = "Agrégateur de sondages pour le second tour de l'élection présidentielle française de 2027."
+        )
+        title("Sondages Second Tour 2027 - voxpol.fr")
+        script(src = minPath("/static/app-second-round.js", minified)) { defer = true }
+    }
+    body {
+        renderSiteHeader("/second-tour-2027")
+        main("container") {
+            renderLineChartsAndTableForHypotheses()
+            renderSecondRoundThresholdChart(thresholdData)
+            renderFooter()
         }
     }
 }

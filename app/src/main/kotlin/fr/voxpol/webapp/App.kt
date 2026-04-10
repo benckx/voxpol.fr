@@ -15,18 +15,15 @@ import io.ktor.server.netty.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.koin.dsl.module
-import org.koin.ktor.ext.get
 import org.koin.ktor.plugin.Koin
 import org.koin.logger.slf4jLogger
 
 fun main(args: Array<String>) {
     val configArg = parseConfigArg(args)
-    embeddedServer(Netty, 8080) {
-        module(configArg)
-    }.start(wait = true)
+    embeddedServer(Netty, 8080) { kTorModule(configArg) }.start(wait = true)
 }
 
-private fun Application.module(configArg: String? = null) {
+private fun Application.kTorModule(configArg: String?) {
     install(Koin) {
         slf4jLogger()
         modules(module {
