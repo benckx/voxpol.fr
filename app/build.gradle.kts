@@ -11,6 +11,7 @@ repositories {
 
 dependencies {
     implementation(project(":wiki-scrapper"))
+    implementation(libs.caffeine)
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.html.builder)
     implementation(libs.ktor.server.netty)

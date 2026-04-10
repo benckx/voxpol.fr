@@ -10,7 +10,7 @@ import java.time.LocalDate
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-class PollService {
+class PollService() {
 
     private val logger = KotlinLogging.logger {}
 

@@ -1,15 +1,18 @@
 package fr.voxpol.webapp.rendering
 
 import fr.voxpol.webapp.AppConfig
+import fr.voxpol.webapp.services.HtmlCache
+import fr.voxpol.webapp.services.HtmlCacheKey
 import fr.voxpol.webapp.services.PollService
 import fr.voxpol.webapp.services.buildQualificationThresholdChartData
+import fr.voxpol.webapp.services.respondHtmlCached
 import io.ktor.server.application.*
-import io.ktor.server.html.*
 import kotlinx.html.*
 
 suspend fun ApplicationCall.renderSecondRoundPage(
     pollService: PollService,
     appConfig: AppConfig,
+    htmlCache: HtmlCache,
 ) {
     val (gaEnabled, _, _, _, minified) = appConfig
     val testingHypotheses = pollService.combinationsByRecency().filter { it.candidates.size == 2 }
@@ -37,7 +40,7 @@ suspend fun ApplicationCall.renderSecondRoundPage(
 
     }
 
-    respondHtml {
+    respondHtmlCached(htmlCache, HtmlCacheKey.SECOND_ROUND) {
         lang = "fr"
         head {
             renderCommonHead(gaEnabled, minified)

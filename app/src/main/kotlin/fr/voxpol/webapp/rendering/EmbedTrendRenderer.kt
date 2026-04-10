@@ -1,16 +1,19 @@
 package fr.voxpol.webapp.rendering
 
 import fr.voxpol.webapp.AppConfig
+import fr.voxpol.webapp.services.HtmlCache
+import fr.voxpol.webapp.services.HtmlCacheKey
 import fr.voxpol.webapp.services.PollService
 import fr.voxpol.webapp.services.buildCandidateTrendChartData
+import fr.voxpol.webapp.services.respondHtmlCached
 import io.ktor.http.*
 import io.ktor.server.application.ApplicationCall
-import io.ktor.server.html.respondHtml
 import kotlinx.html.*
 
 suspend fun ApplicationCall.renderTrendEmbed(
     pollService: PollService,
     appConfig: AppConfig,
+    htmlCache: HtmlCache,
 ) {
     val (gaEnabled, trendWindowDays, _, _, minified) = appConfig
     val trendChartData = buildCandidateTrendChartData(
@@ -18,7 +21,7 @@ suspend fun ApplicationCall.renderTrendEmbed(
         windowDays = trendWindowDays,
     )
 
-    respondHtml {
+    respondHtmlCached(htmlCache, HtmlCacheKey.EMBED_TREND) {
         lang = "fr"
         head {
             renderCommonHead(gaEnabled, minified)

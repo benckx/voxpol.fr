@@ -3,6 +3,7 @@ package fr.voxpol.webapp
 import fr.voxpol.webapp.rendering.renderFirstRoundPage
 import fr.voxpol.webapp.rendering.renderSecondRoundPage
 import fr.voxpol.webapp.rendering.renderTrendEmbed
+import fr.voxpol.webapp.services.HtmlCache
 import fr.voxpol.webapp.services.PollService
 import fr.voxpol.webapp.services.siteMap
 import io.ktor.http.*
@@ -21,6 +22,7 @@ fun main(args: Array<String>) {
 
 private fun Application.module(configArg: String? = null) {
     val appConfig = parseAppConfig(configArg)
+    val htmlCache = HtmlCache()
     val pollService = PollService()
     val homePageCanonicalUrl = "https://voxpol.fr/premier-tour-2027"
 
@@ -29,16 +31,16 @@ private fun Application.module(configArg: String? = null) {
         configureStaticResources(appConfig)
         siteMap()
         get("/") {
-            call.renderFirstRoundPage(pollService, appConfig, homePageCanonicalUrl)
+            call.renderFirstRoundPage(pollService, appConfig, homePageCanonicalUrl, htmlCache)
         }
         get("/premier-tour-2027") {
-            call.renderFirstRoundPage(pollService, appConfig, homePageCanonicalUrl)
+            call.renderFirstRoundPage(pollService, appConfig, homePageCanonicalUrl, htmlCache)
         }
         get("/second-tour-2027") {
-            call.renderSecondRoundPage(pollService, appConfig)
+            call.renderSecondRoundPage(pollService, appConfig, htmlCache)
         }
         get("/embed/trend") {
-            call.renderTrendEmbed(pollService, appConfig)
+            call.renderTrendEmbed(pollService, appConfig, htmlCache)
         }
         get("/health") {
             call.respondText("ok", ContentType.Text.Plain, HttpStatusCode.OK)
