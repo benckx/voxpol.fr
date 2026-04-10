@@ -1,17 +1,18 @@
-package fx.volpol.webapp.rendering
+package fr.voxpol.webapp.rendering
 
-import fx.volpol.webapp.AppConfig
-import fx.volpol.webapp.model.CandidateTrendChartDto
-import fx.volpol.webapp.model.GlobalIntervalsChartDto
-import fx.volpol.webapp.services.buildCandidateTrendChartData
-import fx.volpol.webapp.services.buildGlobalIntervalsChartData
-import fx.volpol.webapp.services.PollService
-import fx.volpol.webapp.services.buildQualificationThresholdChartData
+import fr.voxpol.webapp.AppConfig
+import fr.voxpol.webapp.model.CandidateTrendChartDto
+import fr.voxpol.webapp.model.GlobalIntervalsChartDto
+import fr.voxpol.webapp.services.buildCandidateTrendChartData
+import fr.voxpol.webapp.services.buildGlobalIntervalsChartData
+import fr.voxpol.webapp.services.PollService
+import fr.voxpol.webapp.services.buildQualificationThresholdChartData
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.html.respondHtml
 import kotlinx.html.*
 import kotlinx.serialization.json.Json
 import java.time.LocalDate
+import kotlin.collections.distinct
 
 suspend fun ApplicationCall.renderFirstRoundPage(
     pollService: PollService,

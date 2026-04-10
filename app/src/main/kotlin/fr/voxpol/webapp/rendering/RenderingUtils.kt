@@ -1,9 +1,9 @@
-package fx.volpol.webapp.rendering
+package fr.voxpol.webapp.rendering
 
-import fx.volpol.webapp.model.CandidateTrendChartDto
-import fx.volpol.webapp.model.PollRecord
-import fx.volpol.webapp.model.ThresholdChartDto
-import fx.volpol.webapp.services.buildLineChartData
+import fr.voxpol.webapp.model.CandidateTrendChartDto
+import fr.voxpol.webapp.model.PollRecord
+import fr.voxpol.webapp.model.ThresholdChartDto
+import fr.voxpol.webapp.services.buildLineChartData
 import fr.voxpol.wikiscrapper.Candidate
 import fr.voxpol.wikiscrapper.TestingHypothesis
 import io.ktor.http.ContentType

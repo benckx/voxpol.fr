@@ -1,4 +1,4 @@
-package fx.volpol.webapp
+package fr.voxpol.webapp
 
 import com.typesafe.config.ConfigFactory
 import io.github.oshai.kotlinlogging.KotlinLogging

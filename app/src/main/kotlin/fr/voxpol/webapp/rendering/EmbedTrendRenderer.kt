@@ -1,8 +1,8 @@
-package fx.volpol.webapp.rendering
+package fr.voxpol.webapp.rendering
 
-import fx.volpol.webapp.AppConfig
-import fx.volpol.webapp.services.PollService
-import fx.volpol.webapp.services.buildCandidateTrendChartData
+import fr.voxpol.webapp.AppConfig
+import fr.voxpol.webapp.services.PollService
+import fr.voxpol.webapp.services.buildCandidateTrendChartData
 import io.ktor.http.*
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.html.respondHtml

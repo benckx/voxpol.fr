@@ -1,6 +1,6 @@
-package fx.volpol.webapp.services
+package fr.voxpol.webapp.services
 
-import fx.volpol.webapp.model.PollRecord
+import fr.voxpol.webapp.model.PollRecord
 import fr.voxpol.wikiscrapper.Candidate
 import io.github.oshai.kotlinlogging.KotlinLogging
 import java.time.LocalDate

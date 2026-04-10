@@ -1,4 +1,4 @@
-package fx.volpol.webapp
+package fr.voxpol.webapp
 
 import io.ktor.http.CacheControl
 import io.ktor.http.HttpHeaders
