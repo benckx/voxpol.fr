@@ -45,6 +45,7 @@ class HtmlCache {
  * Drop-in replacement for `respondHtml` that caches the rendered HTML string.
  * The request path is used as the cache key automatically.
  */
+// TODO: refactor this so we don't need to pass the cache as param
 suspend fun ApplicationCall.respondHtmlCached(
     htmlCache: HtmlCache,
     block: HTML.() -> Unit,
