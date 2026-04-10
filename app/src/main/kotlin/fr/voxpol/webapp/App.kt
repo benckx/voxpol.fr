@@ -36,11 +36,9 @@ private fun Application.module(configArg: String? = null) {
         })
     }
 
-    val appConfig = get<AppConfig>()
-
     configureHeaders()
     routing {
-        configureStaticResources(appConfig)
+        configureStaticResources()
         siteMap()
         get("/") {
             call.renderFirstRoundPage()

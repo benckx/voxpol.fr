@@ -11,6 +11,8 @@ import io.ktor.server.plugins.defaultheaders.DefaultHeaders
 import io.ktor.server.request.path
 import io.ktor.server.routing.Route
 
+private val appConfig: AppConfig by koin()
+
 private val AntiFrameHeadersPlugin = createApplicationPlugin("AntiFrameHeaders") {
     onCall { call ->
         if (!call.request.path().startsWith("/embed")) {
@@ -27,7 +29,7 @@ fun Application.configureHeaders() {
     install(AntiFrameHeadersPlugin)
 }
 
-fun Route.configureStaticResources(appConfig: AppConfig) {
+fun Route.configureStaticResources() {
     staticResources("/static", "static") {
         if (appConfig.jsCache.enabled || appConfig.cssCache.enabled) {
             cacheControl { resource ->
