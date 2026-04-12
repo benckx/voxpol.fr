@@ -3,7 +3,8 @@ package fr.voxpol.webapp.services
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.github.benmanes.caffeine.cache.RemovalCause
 import io.github.oshai.kotlinlogging.KotlinLogging
-import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.toJavaDuration
 
 /**
  * In-memory HTML cache backed by Caffeine.
@@ -11,10 +12,11 @@ import java.util.concurrent.TimeUnit
 class HtmlCache {
 
     private val logger = KotlinLogging.logger {}
+    private val expiration = 1.hours
 
     private val cache = Caffeine
         .newBuilder()
-        .expireAfterWrite(1L, TimeUnit.HOURS)
+        .expireAfterWrite(expiration.toJavaDuration())
         .removalListener<String, String> { key, _, cause ->
             when (cause) {
                 RemovalCause.EXPIRED -> logger.info { "HTML cache entry expired: '$key'" }
