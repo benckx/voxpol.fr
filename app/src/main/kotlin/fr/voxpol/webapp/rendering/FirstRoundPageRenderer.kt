@@ -15,8 +15,6 @@ import java.time.LocalDate
 private val pollService by koin<PollService>()
 private val appConfig by koin<AppConfig>()
 
-private const val CANONICAL_URL = "https://voxpol.fr/premier-tour-2027"
-
 suspend fun ApplicationCall.renderFirstRoundPage() = respondHtmlCached {
     // config
     val gaEnabled = appConfig.gaEnabled
@@ -28,7 +26,6 @@ suspend fun ApplicationCall.renderFirstRoundPage() = respondHtmlCached {
     lang = "fr"
     head {
         renderCommonHead(gaEnabled, minified)
-        link(rel = "canonical", href = CANONICAL_URL) {}
         meta(
             name = "description",
             content = "Agrégateur de sondages pour le premier tour de l'élection présidentielle française de 2027."
