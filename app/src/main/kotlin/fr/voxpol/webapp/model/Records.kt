@@ -1,3 +1,6 @@
+/**
+ * Objects data stores in memory.
+ */
 package fr.voxpol.webapp.model
 
 import fr.voxpol.wikiscrapper.Candidate

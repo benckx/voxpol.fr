@@ -30,8 +30,8 @@ suspend fun ApplicationCall.renderSecondRoundPage() = respondHtmlCached {
         renderSiteHeader("/second-tour-2027")
         main("container") {
             renderLineChartsAndTableForHypotheses()
-            renderSecondRoundThresholdChart(thresholdData)
-            renderFooter()
+            renderQualificationThresholdDataAndText(thresholdData)
+            renderSiteFooter()
         }
     }
 }
@@ -47,7 +47,7 @@ private fun FlowContent.renderLineChartsAndTableForHypotheses() {
             val title = testingHypothesis.candidatesInOrder.joinToString(" vs ") { it.lastName }
             val pollsForTestingHypothesis = pollService.pollsForTestingHypothesis(testingHypothesis)
 
-            renderLineChartsAndTableForHypothesis(
+            renderPollsLineChartDataAndTableForHypothesis(
                 pollsForTestingHypothesis = pollsForTestingHypothesis,
                 testingHypothesis = testingHypothesis,
                 sectionIndex = index,

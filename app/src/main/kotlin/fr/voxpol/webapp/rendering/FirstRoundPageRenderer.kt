@@ -38,9 +38,9 @@ suspend fun ApplicationCall.renderFirstRoundPage() = respondHtmlCached {
         main("container") {
             renderTrendWidget()
             renderRangeWidget()
-            renderLineCharts()
-            renderSecondRoundThresholdChart(thresholdData)
-            renderFooter()
+            renderTestingHypothesesLineChartsAndTheirTable()
+            renderQualificationThresholdDataAndText(thresholdData)
+            renderSiteFooter()
         }
     }
 }
@@ -55,7 +55,7 @@ private fun FlowContent.renderTrendWidget() {
             +("Evolution moyenne par candidat entre les $trendWindowDays derniers jours " +
                     "et les $trendWindowDays jours precedents. La durée de cette fenêtre sera réduire à l'approche du scrutin.")
         }
-        renderTrendWidget(trendChartDto)
+        renderTrendWidgetData(trendChartDto)
         details("embed-info") {
             summary { +"Intégrer ce widget à votre site" }
             p { +"Copiez le code suivant pour intégrer le graphique de tendances:" }
@@ -95,7 +95,7 @@ private fun FlowContent.renderRangeWidget() {
     }
 }
 
-private fun FlowContent.renderLineCharts() {
+private fun FlowContent.renderTestingHypothesesLineChartsAndTheirTable() {
     val testingHypotheses = pollService.combinationsByRecency().filter { it.candidates.size > 2 }
     val distinctDateCountByCombination = testingHypotheses.associateWith { testingHypothesis ->
         pollService.pollsForTestingHypothesis(testingHypothesis)
@@ -110,7 +110,7 @@ private fun FlowContent.renderLineCharts() {
     h2 { +"Hypothèses les plus testées" }
     p { +description }
     testingHypothesesToRender.forEachIndexed { index, testingHypothesis ->
-        renderLineChartsAndTableForHypothesis(
+        renderPollsLineChartDataAndTableForHypothesis(
             pollService.pollsForTestingHypothesis(testingHypothesis),
             testingHypothesis,
             index

@@ -1,3 +1,6 @@
+/**
+ * Re-usable bits of HTML rendering (headers, footers, chart sections, etc.) or "components" used across multiple pages.
+ */
 package fr.voxpol.webapp.rendering
 
 import fr.voxpol.webapp.model.CandidateTrendChartDto
@@ -48,6 +51,20 @@ internal fun minPath(path: String, minified: Boolean): String {
 }
 
 internal fun HEAD.renderCommonHead(gaEnabled: Boolean, minified: Boolean = false) {
+    fun HEAD.renderGoogleAnalytics() {
+        val script = """
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', '$GA_MEASUREMENT_ID');
+    """.trimIndent()
+
+        script(src = "https://www.googletagmanager.com/gtag/js?id=$GA_MEASUREMENT_ID") {
+            attributes["async"] = "true"
+        }
+        script { unsafe { +script } }
+    }
+
     val metaKeywords = "sondages, présidentielle, 2027, premier tour, second tour, France, agrégateur, candidats"
 
     meta(charset = "utf-8")
@@ -62,20 +79,6 @@ internal fun HEAD.renderCommonHead(gaEnabled: Boolean, minified: Boolean = false
     script(src = minPath("/static/line-charts.js", minified)) { defer = true }
     script(src = minPath("/static/threshold-chart.js", minified)) { defer = true }
     if (gaEnabled) renderGoogleAnalytics()
-}
-
-private fun HEAD.renderGoogleAnalytics() {
-    val script = """
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', '$GA_MEASUREMENT_ID');
-    """.trimIndent()
-
-    script(src = "https://www.googletagmanager.com/gtag/js?id=$GA_MEASUREMENT_ID") {
-        attributes["async"] = "true"
-    }
-    script { unsafe { +script } }
 }
 
 internal fun FlowContent.renderSiteHeader(activePath: String = "") {
@@ -99,7 +102,7 @@ internal fun FlowContent.renderSiteHeader(activePath: String = "") {
     }
 }
 
-internal fun FlowContent.renderFooter() {
+internal fun FlowContent.renderSiteFooter() {
     footer("site-footer") {
         p {
             +"Site sans pub, car je n'aime pas la pub."
@@ -128,7 +131,11 @@ internal fun FlowContent.renderFooter() {
     }
 }
 
-internal fun FlowContent.renderLineChartsAndTableForHypothesis(
+/**
+ * Render 1 line charts for a collection of polls combining the same candidates (i.e. a "testing hypothesis"),
+ * and the table with the underlying data.
+ */
+internal fun FlowContent.renderPollsLineChartDataAndTableForHypothesis(
     pollsForTestingHypothesis: List<PollRecord>,
     testingHypothesis: TestingHypothesis,
     sectionIndex: Int,
@@ -223,8 +230,11 @@ internal fun FlowContent.renderLineChartsAndTableForHypothesis(
     }
 }
 
-internal fun FlowContent.renderSecondRoundThresholdChart(dto: ThresholdChartDto) {
-    fun FlowContent.renderQualificationThresholdSection() {
+/**
+ * The JSON dto is picked up by the JS code to render the chart
+ */
+internal fun FlowContent.renderQualificationThresholdDataAndText(dto: ThresholdChartDto) {
+    fun FlowContent.renderQualificationThresholdData() {
         val chartId = "threshold-chart"
         val chartDataId = "$chartId-data"
         section("combination-section") {
@@ -239,15 +249,17 @@ internal fun FlowContent.renderSecondRoundThresholdChart(dto: ThresholdChartDto)
         }
     }
 
-
     if (dto.data.size >= 2) {
         h2 { +"Seuil d'accès au second tour" }
         p { +"Score moyen du 2ème candidat dans les sondages du premier tour, agrégé par mois. " }
-        renderQualificationThresholdSection()
+        renderQualificationThresholdData()
     }
 }
 
-internal fun FlowContent.renderTrendWidget(dto: CandidateTrendChartDto) {
+/**
+ * The JSON dto is picked up by the JS code to render the chart
+ */
+internal fun FlowContent.renderTrendWidgetData(dto: CandidateTrendChartDto) {
     section("combination-section") {
         div("candidate-trend-chart") {
             id = "candidate-trend-chart"

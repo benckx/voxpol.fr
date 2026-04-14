@@ -1,3 +1,6 @@
+/**
+ * Build the DTO objects used to render charts in the frontend
+ */
 package fr.voxpol.webapp.services
 
 import fr.voxpol.webapp.model.CandidateTrendChartDto

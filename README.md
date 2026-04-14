@@ -10,6 +10,15 @@ Poll data aggregator for the 2027 French presidential election.
 ./gradlew :app:run --args="--config=dev"
 ```
 
+## Libraries
+
+- JSoup for scrapping a Wikipedia page
+- Ktor for the backend and web pages rendering
+- Ben Manes Caffeine to cache the HTML
+- Kotlinx Serialization for JSON parsing
+- Koin for dependency injection
+- Apex Charts for the charts
+
 ## TODO:
 
 - config flag to force fallback on the csv

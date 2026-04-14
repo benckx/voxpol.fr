@@ -1,3 +1,6 @@
+/**
+ * Objects converted to JSON to provide information to Apex Charts in the frontend.
+ */
 package fr.voxpol.webapp.model
 
 import kotlinx.serialization.Serializable

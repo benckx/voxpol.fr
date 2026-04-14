@@ -32,7 +32,7 @@ suspend fun ApplicationCall.renderTrendEmbed() = respondHtmlCached {
     }
     body {
         main("container") {
-            renderTrendWidget(trendChartData)
+            renderTrendWidgetData(trendChartData)
             p("embed-footer") {
                 a(href = "https://voxpol.fr") {
                     target = "_blank"

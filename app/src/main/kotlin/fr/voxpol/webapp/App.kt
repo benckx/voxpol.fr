@@ -2,10 +2,10 @@ package fr.voxpol.webapp
 
 import fr.voxpol.webapp.rendering.renderFirstRoundPage
 import fr.voxpol.webapp.rendering.renderSecondRoundPage
+import fr.voxpol.webapp.rendering.renderSiteMap
 import fr.voxpol.webapp.rendering.renderTrendEmbed
 import fr.voxpol.webapp.services.HtmlCache
 import fr.voxpol.webapp.services.PollService
-import fr.voxpol.webapp.services.siteMap
 import fr.voxpol.webapp.utils.configureHeaders
 import fr.voxpol.webapp.utils.configureStaticResources
 import io.ktor.http.*
@@ -36,7 +36,6 @@ private fun Application.kTorModule(configArg: String?) {
     configureHeaders()
     routing {
         configureStaticResources()
-        siteMap()
         get("/") {
             call.renderFirstRoundPage()
         }
@@ -51,6 +50,9 @@ private fun Application.kTorModule(configArg: String?) {
         }
         get("/health") {
             call.respondText("ok", ContentType.Text.Plain, HttpStatusCode.OK)
+        }
+        get("/sitemap.xml") {
+            call.renderSiteMap()
         }
     }
 }
