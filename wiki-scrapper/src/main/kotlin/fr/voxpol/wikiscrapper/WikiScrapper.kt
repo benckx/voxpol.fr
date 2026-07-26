@@ -2,6 +2,7 @@ package fr.voxpol.wikiscrapper
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import java.net.URLDecoder
 import java.text.Normalizer
@@ -10,9 +11,36 @@ import java.time.LocalDate
 private const val URL =
     "https://fr.wikipedia.org/wiki/Liste_de_sondages_sur_l'%C3%A9lection_pr%C3%A9sidentielle_fran%C3%A7aise_de_2027"
 
-class WikiScrapper {
+class WikiScrapper(
+    private val documentProvider: () -> Document = {
+        Jsoup.connect(URL)
+            .userAgent("Mozilla/5.0 (compatible; poll-aggregator/1.0)")
+            .get()
+    }
+) {
 
     private val logger = KotlinLogging.logger {}
+
+    private val candidateHeaderKeys: Map<String, Candidate> = buildCandidateHeaderKeys()
+
+    private fun buildCandidateHeaderKeys(): Map<String, Candidate> {
+        val map = mutableMapOf<String, Candidate>()
+        Candidate.entries.forEach { candidate ->
+            candidate.headerNameKeys().forEach { key -> map.putIfAbsent(key, candidate) }
+        }
+        return map
+    }
+
+    private fun Candidate.headerNameKeys(): Set<String> {
+        val fullSurname = wikiSlug
+            .removeSuffix("_(homme_politique)")
+            .substringAfter('_')
+            .replace('_', ' ')
+        return setOf(fullSurname, lastName)
+            .map { it.normalizeForLookup() }
+            .filter { it.isNotEmpty() }
+            .toSet()
+    }
 
     fun fetchFirstRoundStudies(): List<Study> =
         fetchFirstRoundPollTables().flatMap { parseStudies(it) }
@@ -44,9 +72,7 @@ class WikiScrapper {
             }
     }
 
-    private fun fetchDocument() = Jsoup.connect(URL)
-        .userAgent("Mozilla/5.0 (compatible; poll-aggregator/1.0)")
-        .get()
+    private fun fetchDocument() = documentProvider()
 
     private fun parseColumnMapping(table: Element): Map<Int, Candidate> {
         val candidatesBySlug = Candidate.entries.associateBy { it.wikiSlug }
@@ -66,6 +92,7 @@ class WikiScrapper {
                 ?.let { URLDecoder.decode(it, "UTF-8") }
 
             val candidate = slug?.let { candidatesBySlug[it] }
+                ?: matchCandidateFromText(th.text())
             if (candidate != null) {
                 repeat(colspan) { offset ->
                     mapping[absoluteColumnIndex + offset] = candidate
@@ -199,6 +226,18 @@ class WikiScrapper {
         return runCatching { parseDateRange(date, fallbackYear) }.getOrNull()
     }
 
+    private fun matchCandidateFromText(text: String): Candidate? {
+        val name = text
+            .replace(FOOTNOTE_REGEX, "")
+            .replace(NUMBER_REGEX, " ")
+            .substringBefore('(')
+            .normalizeCellText()
+            .normalizeForLookup()
+
+        if (name.isEmpty()) return null
+        return candidateHeaderKeys[name]
+    }
+
     private fun extractCandidateFromCell(
         cell: Element,
         candidatesBySlug: Map<String, Candidate>
@@ -208,9 +247,9 @@ class WikiScrapper {
             ?.removePrefix("/wiki/")
             ?.substringBefore("#")
             ?.let { URLDecoder.decode(it, "UTF-8") }
-            ?: return null
 
-        return candidatesBySlug[slug]
+        return slug?.let { candidatesBySlug[it] }
+            ?: matchCandidateFromText(cell.text())
     }
 
     private fun extractPollsterName(pollsterCell: Element): String {
@@ -379,6 +418,7 @@ class WikiScrapper {
 
     companion object {
         private val NUMBER_REGEX = Regex("""\d+(?:[.,]\d+)?""")
+        private val FOOTNOTE_REGEX = Regex("""\[[^\]]*\]""")
         private val YEAR_HEADING_REGEX = Regex("""^Ann[e\u00e9]e\s+(\d{4})$""", RegexOption.IGNORE_CASE)
         private val SECOND_ROUND_HEADING_REGEX = Regex("""second\s+tour""", RegexOption.IGNORE_CASE)
         private val SINGLE_DAY_REGEX = Regex("""(\d{1,2}(?:er)?)\s+([\p{L}-]+)(?:\s+(\d{4}))?""")
