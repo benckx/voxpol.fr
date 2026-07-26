@@ -14,7 +14,7 @@ private const val URL =
 class WikiScrapper(
     private val documentProvider: () -> Document = {
         Jsoup.connect(URL)
-            .userAgent("Mozilla/5.0 (compatible; poll-aggregator/1.0)")
+            .userAgent("Mozilla/5.0 (compatible; voxpol/1.0)")
             .get()
     }
 ) {
