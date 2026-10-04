@@ -5,7 +5,7 @@ koin = "4.2.2"
 ktor = "3.6.0"
 kotlinx-serialization = "1.11.0"
 kotlin-logging = "8.0.4"
-logback = "1.6.3"
+logback = "1.6.5"
 
 [libraries]
 caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version.ref = "caffeine" }
