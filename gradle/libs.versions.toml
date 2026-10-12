@@ -21,7 +21,7 @@ klogger = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "kotlin
 logback-classic-lib = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 
 [plugins]
-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version = "2.4.20" }
-kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version = "2.4.20" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version = "2.4.21" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version = "2.4.21" }
 shadow = { id = "com.gradleup.shadow", version = "9.6.1" }
-versions = { id = "com.github.ben-manes.versions", version = "0.64.0" }
+versions = { id = "com.github.ben-manes.versions", version = "0.65.0" }
