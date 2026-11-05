@@ -2,10 +2,10 @@
 caffeine = "3.3.1"
 jsoup = "1.23.2"
 koin = "4.2.2"
-ktor = "3.6.0"
-kotlinx-serialization = "1.11.0"
+ktor = "3.6.1"
+kotlinx-serialization = "1.12.0"
 kotlin-logging = "8.0.4"
-logback = "1.6.5"
+logback = "1.6.6"
 
 [libraries]
 caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version.ref = "caffeine" }
@@ -24,4 +24,4 @@ logback-classic-lib = { module = "ch.qos.logback:logback-classic", version.ref =
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version = "2.4.21" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version = "2.4.21" }
 shadow = { id = "com.gradleup.shadow", version = "9.6.1" }
-versions = { id = "io.github.ben-manes.versions", version = "0.66.0" }
+versions = { id = "io.github.ben-manes.versions", version = "0.67.0" }
