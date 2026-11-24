@@ -128,15 +128,33 @@ class PollService() {
 
         return allPollRecords()
             .groupBy { it.scoresByCandidate.keys }
+            .mapValues { (_, polls) -> dropOldPollsIfEnoughRecent(polls) }
             .entries
             .sortedWith(comparator)
             .map { (candidates, _) -> TestingHypothesis(candidates) }
     }
 
     fun pollsForTestingHypothesis(hypothesis: TestingHypothesis): List<PollRecord> {
-        return allPollRecords()
-            .filter { it.scoresByCandidate.keys == hypothesis.candidates }
-            .sortedByDescending { it.dateTo }
+        return dropOldPollsIfEnoughRecent(
+            allPollRecords()
+                .filter { it.scoresByCandidate.keys == hypothesis.candidates }
+                .sortedByDescending { it.dateTo }
+        )
+    }
+
+    /**
+     * If there are more than [MIN_RECENT_POLLS] polls in the last 12 months, older polls are dropped.
+     */
+    private fun dropOldPollsIfEnoughRecent(polls: List<PollRecord>): List<PollRecord> {
+        val cutoffDate = recentCutoffDate()
+        val recentPolls = polls.filter { !it.dateTo.isBefore(cutoffDate) }
+        return if (recentPolls.size > MIN_RECENT_POLLS) recentPolls else polls
+    }
+
+    companion object {
+        private const val MIN_RECENT_POLLS = 3
+
+        fun recentCutoffDate(): LocalDate = LocalDate.now().minusMonths(12)
     }
 
 }

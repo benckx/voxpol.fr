@@ -10,7 +10,6 @@ import fr.voxpol.webapp.utils.respondHtmlCached
 import io.ktor.server.application.*
 import kotlinx.html.*
 import kotlinx.serialization.json.Json
-import java.time.LocalDate
 
 private val pollService by koin<PollService>()
 private val appConfig by koin<AppConfig>()
@@ -67,13 +66,12 @@ private fun FlowContent.renderTrendWidget() {
 }
 
 private fun FlowContent.renderRangeWidget() {
-    val intervalsCutOffDate = LocalDate.now().minusDays(365)
-    val dto = buildGlobalIntervalsChartData(pollService.getFirstRoundPollsBefore(intervalsCutOffDate))
+    val dto = buildGlobalIntervalsChartData(pollService.getFirstRoundPollsBefore(PollService.recentCutoffDate()))
 
     if (dto.stats.isNotEmpty()) {
         val description = "Ce graphique présente la plage des intentions de vote " +
                 "pour chaque candidat, basée sur les sondages réalisés " +
-                "au cours des 365 derniers jours. La barre représente " +
+                "au cours des 12 derniers mois. La barre représente " +
                 "l'intervalle entre les intentions de vote les plus basses " +
                 "et les plus hautes enregistrées pour chaque candidat."
 

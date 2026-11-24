@@ -23,6 +23,8 @@ class WikiScrapper(
 
     private val candidateHeaderKeys: Map<String, Candidate> = buildCandidateHeaderKeys()
 
+    private val candidatesBySlug: Map<String, Candidate> = Candidate.entries.associateBy { it.wikiSlug }
+
     private fun buildCandidateHeaderKeys(): Map<String, Candidate> {
         val map = mutableMapOf<String, Candidate>()
         Candidate.entries.forEach { candidate ->
@@ -75,31 +77,25 @@ class WikiScrapper(
     private fun fetchDocument() = documentProvider()
 
     private fun parseColumnMapping(table: Element): Map<Int, Candidate> {
-        val candidatesBySlug = Candidate.entries.associateBy { it.wikiSlug }
         val rows = table.select("tr")
         if (rows.size < 2) return emptyMap()
 
         val mapping = mutableMapOf<Int, Candidate>()
-        var absoluteColumnIndex = 3
 
-        rows[1].select("th").forEach { th ->
-            val colspan = th.attr("colspan").toIntOrNull()?.coerceAtLeast(1) ?: 1
-
-            val slug = th.selectFirst("a[href^=/wiki/]")
-                ?.attr("href")
-                ?.removePrefix("/wiki/")
-                ?.substringBefore("#")
-                ?.let { URLDecoder.decode(it, "UTF-8") }
-
-            val candidate = slug?.let { candidatesBySlug[it] }
-                ?: matchCandidateFromText(th.text())
-            if (candidate != null) {
-                repeat(colspan) { offset ->
-                    mapping[absoluteColumnIndex + offset] = candidate
+        // Candidate headers are either in the first row (after "Sondeur", "Date", "Échantillon")
+        // or in a second header row (the first 3 columns being row-spanned from the first row).
+        listOf(rows[0] to 0, rows[1] to 3).forEach { (row, startIndex) ->
+            var absoluteColumnIndex = startIndex
+            row.select("th").forEach { th ->
+                val colspan = th.attr("colspan").toIntOrNull()?.coerceAtLeast(1) ?: 1
+                val candidate = extractCandidateFromCell(th)
+                if (candidate != null) {
+                    repeat(colspan) { offset ->
+                        mapping[absoluteColumnIndex + offset] = candidate
+                    }
                 }
+                absoluteColumnIndex += colspan
             }
-
-            absoluteColumnIndex += colspan
         }
 
         return mapping
@@ -110,14 +106,14 @@ class WikiScrapper(
         if (rows.size <= 3) return emptyList()
 
         val year = extractYearForTable(table)
-        val candidatesBySlug = Candidate.entries.associateBy { it.wikiSlug }
         val columnMapping = parseColumnMapping(table)
         val studies = mutableListOf<Study>()
         var currentStudy: MutableStudy? = null
         var currentPollster: String? = null
         var currentSourceUrl: String? = null
 
-        rows.drop(3).forEach { row ->
+        // header rows have no <td> and are skipped below
+        rows.forEach { row ->
             val cells = row.select("td")
             if (cells.isEmpty()) return@forEach
             if (cells.size == 1) return@forEach
@@ -156,9 +152,18 @@ class WikiScrapper(
                 resultCells = cells
             }
 
-            val hasAmbiguousMergedResultCell = resultCells.any { cell ->
-                val colspan = cell.attr("colspan").toIntOrNull() ?: 1
-                colspan > 1 && extractCandidateFromCell(cell, candidatesBySlug) == null
+            val hasAmbiguousMergedResultCell = run {
+                var absoluteColumnIndex = 3
+                resultCells.any { cell ->
+                    val colspan = cell.attr("colspan").toIntOrNull()?.coerceAtLeast(1) ?: 1
+                    val spannedCandidates = (absoluteColumnIndex until absoluteColumnIndex + colspan)
+                        .map { columnMapping[it] }
+                        .toSet()
+                    absoluteColumnIndex += colspan
+                    colspan > 1 &&
+                            spannedCandidates.size != 1 &&
+                            cellSegments(cell).any { extractCandidateFromCell(it) == null }
+                }
             }
             if (hasAmbiguousMergedResultCell) {
                 return@forEach
@@ -169,13 +174,19 @@ class WikiScrapper(
 
             resultCells.forEach { cell ->
                 val colspan = cell.attr("colspan").toIntOrNull()?.coerceAtLeast(1) ?: 1
-                val candidate = extractCandidateFromCell(cell, candidatesBySlug)
-                    ?: columnMapping[absoluteColumnIndex]
+                val segments = cellSegments(cell)
 
-                if (candidate != null) {
-                    val score = parseScore(cell.text())
-                    if (score != null) {
-                        results[candidate] = score
+                if (segments.size > 1) {
+                    // e.g. "Autres" cell: "4 Riner <hr> 1 Villepin"
+                    segments.forEach { segment ->
+                        val candidate = extractCandidateFromCell(segment) ?: return@forEach
+                        parseScore(segment.text())?.let { results[candidate] = it }
+                    }
+                } else {
+                    val candidate = extractCandidateFromCell(cell)
+                        ?: columnMapping[absoluteColumnIndex]
+                    if (candidate != null) {
+                        parseScore(cell.text())?.let { results[candidate] = it }
                     }
                 }
 
@@ -238,18 +249,34 @@ class WikiScrapper(
         return candidateHeaderKeys[name]
     }
 
-    private fun extractCandidateFromCell(
-        cell: Element,
-        candidatesBySlug: Map<String, Candidate>
-    ): Candidate? {
-        val slug = cell.selectFirst("a[href^=/wiki/]")
-            ?.attr("href")
-            ?.removePrefix("/wiki/")
-            ?.substringBefore("#")
-            ?.let { URLDecoder.decode(it, "UTF-8") }
-
-        return slug?.let { candidatesBySlug[it] }
+    private fun extractCandidateFromCell(cell: Element): Candidate? {
+        return cell.select("a[href]")
+            .firstNotNullOfOrNull { link -> extractWikiSlug(link.attr("href"))?.let { candidatesBySlug[it] } }
             ?: matchCandidateFromText(cell.text())
+    }
+
+    /**
+     * Supports both relative ("/wiki/Foo", "./Foo") and absolute ("https://fr.wikipedia.org/wiki/Foo") links.
+     */
+    private fun extractWikiSlug(href: String): String? {
+        val path = when {
+            href.startsWith("/wiki/") -> href.removePrefix("/wiki/")
+            href.startsWith("./") -> href.removePrefix("./")
+            WIKI_ABSOLUTE_LINK_REGEX.containsMatchIn(href) -> href.replace(WIKI_ABSOLUTE_LINK_REGEX, "")
+            else -> return null
+        }
+        return URLDecoder.decode(path.substringBefore("#").substringBefore("?"), "UTF-8")
+    }
+
+    /**
+     * Splits a cell holding several results separated by <hr> (e.g. "4 Riner <hr> 1 Villepin").
+     */
+    private fun cellSegments(cell: Element): List<Element> {
+        if (cell.selectFirst("hr") == null) return listOf(cell)
+        return cell.html()
+            .split(HR_REGEX)
+            .map { Jsoup.parseBodyFragment(it, cell.baseUri()).body() }
+            .filter { it.text().isNotBlank() }
     }
 
     private fun extractPollsterName(pollsterCell: Element): String {
@@ -426,6 +453,8 @@ class WikiScrapper(
             Regex("""(\d{1,2}(?:er)?)\s*-\s*(\d{1,2}(?:er)?)\s+([\p{L}-]+)(?:\s+(\d{4}))?""")
         private val CROSS_MONTH_RANGE_REGEX =
             Regex("""(\d{1,2}(?:er)?)\s+([\p{L}-]+)\s*-\s*(\d{1,2}(?:er)?)\s+([\p{L}-]+)(?:\s+(\d{4}))?""")
+        private val WIKI_ABSOLUTE_LINK_REGEX = Regex("""^(?:https?:)?//[a-z]+\.wikipedia\.org/wiki/""")
+        private val HR_REGEX = Regex("""<hr[^>]*>""", RegexOption.IGNORE_CASE)
         private val DIACRITICS_REGEX = Regex("""\p{M}+""")
         private val SAMPLE_SIZE_REGEX = Regex("""\d""")
         private val MONTHS = mapOf(
