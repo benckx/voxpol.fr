@@ -1,6 +1,4 @@
-/**
- * Build the DTO objects used to render charts in the frontend
- */
+// Build the DTO objects used to render charts in the frontend.
 package fr.voxpol.webapp.services
 
 import fr.voxpol.webapp.model.CandidateTrendChartDto
@@ -19,16 +17,14 @@ import fr.voxpol.wikiscrapper.Candidate
 import kotlin.math.abs
 import kotlin.math.roundToLong
 
-private fun Double.round4(): Double = (this * 10_000).roundToLong() / 10_000.0
+private fun Double.round4(): Double =
+    (this * 10_000).roundToLong() / 10_000.0
 
 /**
  * Aggregate poll data into a format suitable for line charts
  * @param candidates the sorted list of candidates to include in the chart
  */
-fun buildLineChartData(
-    candidates: List<Candidate>,
-    polls: List<PollRecord>
-): PollChartDto {
+fun buildLineChartData(candidates: List<Candidate>, polls: List<PollRecord>): PollChartDto {
     // Keep one poll per day in charts to avoid stacked points on the same date.
     val dailyPolls = polls
         .groupBy { it.dateTo }
@@ -39,7 +35,7 @@ fun buildLineChartData(
                     compareByDescending<PollRecord> { it.sampleSize }
                         .thenByDescending { it.dateFrom }
                         .thenBy { it.pollster }
-                        .thenBy { it.sourceUrl ?: "" }
+                        .thenBy { it.sourceUrl ?: "" },
                 )
                 .first()
         }
@@ -64,9 +60,7 @@ fun buildLineChartData(
     )
 }
 
-fun buildGlobalIntervalsChartData(
-    polls: List<PollRecord>,
-): GlobalIntervalsChartDto {
+fun buildGlobalIntervalsChartData(polls: List<PollRecord>): GlobalIntervalsChartDto {
     val excludedFromGlobalSummary = setOf(Candidate.POUTOU, Candidate.BAYROU)
 
     val stats = Candidate.entries
@@ -91,10 +85,7 @@ fun buildGlobalIntervalsChartData(
     )
 }
 
-fun buildCandidateTrendChartData(
-    polls: List<PollRecord>,
-    windowDays: Int
-): CandidateTrendChartDto {
+fun buildCandidateTrendChartData(polls: List<PollRecord>, windowDays: Int): CandidateTrendChartDto {
     require(windowDays > 0) { "windowDays must be > 0" }
 
     val latestEnd = polls.maxOfOrNull { it.dateTo }
@@ -130,8 +121,11 @@ fun buildCandidateTrendChartData(
                 previousAvg = previousAvg,
                 delta = delta,
                 direction = when {
-                    abs(delta) < .005 -> TrendDirectionDto.FLAT // half a percent
+                    abs(delta) < .005 -> TrendDirectionDto.FLAT
+
+                    // half a percent
                     delta > 0 -> TrendDirectionDto.UP
+
                     else -> TrendDirectionDto.DOWN
                 },
                 latestPollCount = latestValues.size,
@@ -162,14 +156,16 @@ fun buildQualificationThresholdChartData(firstRoundPolls: List<PollRecord>): Thr
                     .sortedDescending()
                     .getOrNull(1)
             }
-            if (secondHighestValues.isEmpty()) null
-            else ThresholdChartPointDto(
-                x = date.toString(),
-                avg = secondHighestValues.average(),
-                min = secondHighestValues.min(),
-                max = secondHighestValues.max(),
-            )
+            if (secondHighestValues.isEmpty()) {
+                null
+            } else {
+                ThresholdChartPointDto(
+                    x = date.toString(),
+                    avg = secondHighestValues.average(),
+                    min = secondHighestValues.min(),
+                    max = secondHighestValues.max(),
+                )
+            }
         }
     return ThresholdChartDto(data = data)
 }
-

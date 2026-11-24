@@ -10,6 +10,11 @@ Poll data aggregator for the 2027 French presidential election.
 ./gradlew :app:run --args="--config=dev"
 ```
 
+## Kotlin formatting
+
+Run `./gradlew ktlintCheck` to check formatting, or `./gradlew ktlintFormat` to fix it.
+The Gradle build also runs the formatting checks.
+
 ## Libraries
 
 - JSoup for scrapping a Wikipedia page

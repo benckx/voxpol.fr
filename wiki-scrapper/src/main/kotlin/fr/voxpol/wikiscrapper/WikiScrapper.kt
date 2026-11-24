@@ -16,7 +16,7 @@ class WikiScrapper(
         Jsoup.connect(URL)
             .userAgent("Mozilla/5.0 (compatible; voxpol/1.0)")
             .get()
-    }
+    },
 ) {
 
     private val logger = KotlinLogging.logger {}
@@ -57,8 +57,8 @@ class WikiScrapper(
                 val firstRow = table.selectFirst("tr")
                 val headers = firstRow?.select("th") ?: return@filter false
                 headers.size > 5 &&
-                        headers.first()?.text() == "Sondeur" &&
-                        extractYearForTable(table) != null
+                    headers.first()?.text() == "Sondeur" &&
+                    extractYearForTable(table) != null
             }
     }
 
@@ -69,12 +69,13 @@ class WikiScrapper(
                 val firstRow = table.selectFirst("tr")
                 val headers = firstRow?.select("th") ?: return@filter false
                 headers.isNotEmpty() &&
-                        headers.first()?.text() == "Sondeur" &&
-                        isSecondRoundTable(table)
+                    headers.first()?.text() == "Sondeur" &&
+                    isSecondRoundTable(table)
             }
     }
 
-    private fun fetchDocument() = documentProvider()
+    private fun fetchDocument() =
+        documentProvider()
 
     private fun parseColumnMapping(table: Element): Map<Int, Candidate> {
         val rows = table.select("tr")
@@ -161,8 +162,8 @@ class WikiScrapper(
                         .toSet()
                     absoluteColumnIndex += colspan
                     colspan > 1 &&
-                            spannedCandidates.size != 1 &&
-                            cellSegments(cell).any { extractCandidateFromCell(it) == null }
+                        spannedCandidates.size != 1 &&
+                        cellSegments(cell).any { extractCandidateFromCell(it) == null }
                 }
             }
             if (hasAmbiguousMergedResultCell) {
@@ -198,7 +199,7 @@ class WikiScrapper(
                 if (!poll.isSummedCloseToOne()) {
                     logger.warn {
                         "Poll sum out of tolerance for ${currentStudy?.pollster ?: "unknown"} " +
-                                "(${currentStudy?.minDate ?: "?"} to ${currentStudy?.maxDate ?: "?"}): ${poll.summed()}"
+                            "(${currentStudy?.minDate ?: "?"} to ${currentStudy?.maxDate ?: "?"}): ${poll.summed()}"
                     }
                 }
                 currentStudy?.polls?.add(poll)
@@ -216,8 +217,8 @@ class WikiScrapper(
         val thirdCellText = cells[2].text().normalizeCellText()
 
         return parseDateRangeOrNull(firstCellText, fallbackYear) == null &&
-                parseDateRangeOrNull(secondCellText, fallbackYear) != null &&
-                isLikelySampleSize(thirdCellText)
+            parseDateRangeOrNull(secondCellText, fallbackYear) != null &&
+            isLikelySampleSize(thirdCellText)
     }
 
     private fun isSplitStudyStartRow(cells: List<Element>, fallbackYear: Int?): Boolean {
@@ -226,16 +227,16 @@ class WikiScrapper(
         val secondCellText = cells[1].text().normalizeCellText()
 
         return parseDateRangeOrNull(firstCellText, fallbackYear) != null &&
-                isLikelySampleSize(secondCellText)
+            isLikelySampleSize(secondCellText)
     }
 
-    private fun isLikelySampleSize(text: String): Boolean {
-        return SAMPLE_SIZE_REGEX.containsMatchIn(text)
-    }
+    private fun isLikelySampleSize(text: String): Boolean =
+        SAMPLE_SIZE_REGEX.containsMatchIn(text)
 
-    private fun parseDateRangeOrNull(date: String, fallbackYear: Int?): Pair<LocalDate, LocalDate>? {
-        return runCatching { parseDateRange(date, fallbackYear) }.getOrNull()
-    }
+    private fun parseDateRangeOrNull(date: String, fallbackYear: Int?): Pair<LocalDate, LocalDate>? =
+        runCatching {
+            parseDateRange(date, fallbackYear)
+        }.getOrNull()
 
     private fun matchCandidateFromText(text: String): Candidate? {
         val name = text
@@ -249,11 +250,10 @@ class WikiScrapper(
         return candidateHeaderKeys[name]
     }
 
-    private fun extractCandidateFromCell(cell: Element): Candidate? {
-        return cell.select("a[href]")
+    private fun extractCandidateFromCell(cell: Element): Candidate? =
+        cell.select("a[href]")
             .firstNotNullOfOrNull { link -> extractWikiSlug(link.attr("href"))?.let { candidatesBySlug[it] } }
             ?: matchCandidateFromText(cell.text())
-    }
 
     /**
      * Supports both relative ("/wiki/Foo", "./Foo") and absolute ("https://fr.wikipedia.org/wiki/Foo") links.
@@ -279,16 +279,14 @@ class WikiScrapper(
             .filter { it.text().isNotBlank() }
     }
 
-    private fun extractPollsterName(pollsterCell: Element): String {
-        return pollsterCell.selectFirst("a.external.text")?.text()?.normalizeCellText()
+    private fun extractPollsterName(pollsterCell: Element): String =
+        pollsterCell.selectFirst("a.external.text")?.text()?.normalizeCellText()
             ?: pollsterCell.selectFirst("a")?.text()?.normalizeCellText()
             ?: pollsterCell.text().normalizeCellText()
-    }
 
-    private fun extractSourceUrl(pollsterCell: Element): String? {
-        return pollsterCell.selectFirst("a.external.text")?.attr("abs:href")
+    private fun extractSourceUrl(pollsterCell: Element): String? =
+        pollsterCell.selectFirst("a.external.text")?.attr("abs:href")
             ?.takeIf { it.isNotBlank() }
-    }
 
     private fun parseScore(text: String): Double? {
         val normalized = text.normalizeCellText()
@@ -304,13 +302,12 @@ class WikiScrapper(
         return digits.toInt()
     }
 
-    private fun String.normalizeCellText(): String {
-        return replace('\u00a0', ' ')
+    private fun String.normalizeCellText(): String =
+        replace('\u00a0', ' ')
             .replace('\u202f', ' ')
             .replace('—', '-')
             .replace(Regex("""\s+"""), " ")
             .trim()
-    }
 
     private fun parseDateRange(date: String, fallbackYear: Int?): Pair<LocalDate, LocalDate> {
         val normalized = date.normalizeCellText()
@@ -353,9 +350,8 @@ class WikiScrapper(
         throw IllegalArgumentException("Unsupported French date format: '$date'")
     }
 
-    private fun parseDay(dayText: String): Int {
-        return dayText.removeSuffix("er").toInt()
-    }
+    private fun parseDay(dayText: String): Int =
+        dayText.removeSuffix("er").toInt()
 
     private fun parseMonth(monthText: String): Int {
         val normalizedMonth = monthText.normalizeForLookup()
@@ -363,11 +359,10 @@ class WikiScrapper(
             ?: throw IllegalArgumentException("Unsupported French month: '$monthText'")
     }
 
-    private fun parseYear(yearText: String?, fallbackYear: Int?, originalDate: String): Int {
-        return yearText?.toIntOrNull()
+    private fun parseYear(yearText: String?, fallbackYear: Int?, originalDate: String): Int =
+        yearText?.toIntOrNull()
             ?: fallbackYear
             ?: throw IllegalArgumentException("Missing year for date: '$originalDate'")
-    }
 
     private fun isSecondRoundTable(table: Element): Boolean {
         // Each second-round table is under an h3 like "Hypothèse Attal – Bardella",
@@ -410,18 +405,16 @@ class WikiScrapper(
         return null
     }
 
-    private fun findLastHeadingText(element: Element): String? {
-        return element.select("h2, h3")
+    private fun findLastHeadingText(element: Element): String? =
+        element.select("h2, h3")
             .asReversed()
             .firstOrNull()
             ?.text()
             ?.normalizeCellText()
-    }
 
-    private fun String.normalizeForLookup(): String {
-        return Normalizer.normalize(lowercase(), Normalizer.Form.NFD)
+    private fun String.normalizeForLookup(): String =
+        Normalizer.normalize(lowercase(), Normalizer.Form.NFD)
             .replace(DIACRITICS_REGEX, "")
-    }
 
     private data class MutableStudy(
         val pollster: String,
@@ -429,10 +422,10 @@ class WikiScrapper(
         val minDate: LocalDate,
         val maxDate: LocalDate,
         val sampleSize: Int,
-        val polls: MutableList<Poll> = mutableListOf()
+        val polls: MutableList<Poll> = mutableListOf(),
     ) {
-        fun toImmutable(): Study {
-            return Study(
+        fun toImmutable(): Study =
+            Study(
                 pollster = pollster,
                 sourceUrl = sourceUrl,
                 minDate = minDate,
@@ -440,7 +433,6 @@ class WikiScrapper(
                 sampleSize = sampleSize,
                 polls = polls.toList(),
             )
-        }
     }
 
     companion object {

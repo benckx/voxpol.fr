@@ -115,7 +115,6 @@ fun main() {
         }
 }
 
-
 private fun Double.toPercentString(): String {
     val percent = this * 100.0
     return if (percent % 1.0 == 0.0) {

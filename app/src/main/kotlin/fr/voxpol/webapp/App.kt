@@ -26,11 +26,13 @@ fun main(args: Array<String>) {
 private fun Application.kTorModule(configArg: String?) {
     install(Koin) {
         slf4jLogger()
-        modules(module {
-            single { parseAppConfig(configArg) }
-            single(createdAtStart = true) { HtmlCache() }
-            single(createdAtStart = true) { PollService() }
-        })
+        modules(
+            module {
+                single { parseAppConfig(configArg) }
+                single(createdAtStart = true) { HtmlCache() }
+                single(createdAtStart = true) { PollService() }
+            },
+        )
     }
 
     configureHeaders()

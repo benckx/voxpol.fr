@@ -4,10 +4,7 @@ import com.typesafe.config.ConfigFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.config.HoconApplicationConfig
 
-data class AssetCacheConfig(
-    val enabled: Boolean,
-    val maxAgeSeconds: Int,
-)
+data class AssetCacheConfig(val enabled: Boolean, val maxAgeSeconds: Int)
 
 data class AppConfig(
     val gaEnabled: Boolean,
@@ -72,13 +69,16 @@ fun parseAppConfig(configArg: String? = null): AppConfig {
     return appConfig
 }
 
-private fun loadConfig(configArg: String?) = when (val normalized = normalizeConfigArg(configArg)) {
-    null -> ConfigFactory.load()
-    else -> ConfigFactory
-        .parseResourcesAnySyntax(normalized)
-        .withFallback(ConfigFactory.load())
-        .resolve()
-}
+private fun loadConfig(configArg: String?) =
+    when (val normalized = normalizeConfigArg(configArg)) {
+        null -> ConfigFactory.load()
+
+        else ->
+            ConfigFactory
+                .parseResourcesAnySyntax(normalized)
+                .withFallback(ConfigFactory.load())
+                .resolve()
+    }
 
 private fun normalizeConfigArg(configArg: String?): String? {
     val raw = configArg?.trim()?.takeIf { it.isNotEmpty() } ?: return null

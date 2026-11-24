@@ -3,9 +3,7 @@ package fr.voxpol.wikiscrapper
 import java.time.LocalDate
 import kotlin.math.abs
 
-data class TestingHypothesis(
-    val candidates: Set<Candidate>
-) {
+data class TestingHypothesis(val candidates: Set<Candidate>) {
 
     val candidatesInOrder: List<Candidate>
         get() = Candidate.entries.filter { it in candidates }
@@ -47,7 +45,8 @@ enum class Candidate(val wikiSlug: String, val color: String? = null) {
     BARDELLA("Jordan_Bardella", "0D378A"),
     LE_PEN("Marine_Le_Pen", "0D378A"),
     KNAFO("Sarah_Knafo", "404040"),
-    ZEMMOUR("Éric_Zemmour", "404040");
+    ZEMMOUR("Éric_Zemmour", "404040"),
+    ;
 
     val lastName: String
         get() = when (this) {
@@ -59,19 +58,16 @@ enum class Candidate(val wikiSlug: String, val color: String? = null) {
     val cssColor: String?
         get() = color?.let { "#$it" }
 
-    override fun toString(): String {
-        return wikiSlug.removeSuffix("_(homme_politique)").replace('_', ' ')
-    }
+    override fun toString(): String =
+        wikiSlug.removeSuffix("_(homme_politique)").replace('_', ' ')
 }
 
-data class Poll(
-    val results: Map<Candidate, Double>,
-) {
-    fun summed(): Double = results.values.sum()
+data class Poll(val results: Map<Candidate, Double>) {
+    fun summed(): Double =
+        results.values.sum()
 
-    fun isSummedCloseToOne(tolerance: Double = .10): Boolean {
-        return abs(summed() - 1.0) <= tolerance
-    }
+    fun isSummedCloseToOne(tolerance: Double = .10): Boolean =
+        abs(summed() - 1.0) <= tolerance
 }
 
 data class Study(
@@ -80,7 +76,7 @@ data class Study(
     val minDate: LocalDate,
     val maxDate: LocalDate,
     val sampleSize: Int,
-    val polls: List<Poll>
+    val polls: List<Poll>,
 ) {
     override fun toString(): String {
         val dateRange = if (minDate == maxDate) {

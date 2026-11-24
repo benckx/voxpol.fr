@@ -11,30 +11,31 @@ import kotlinx.html.*
 private val pollService by koin<PollService>()
 private val appConfig by koin<AppConfig>()
 
-suspend fun ApplicationCall.renderSecondRoundPage() = respondHtmlCached {
-    val gaEnabled = appConfig.gaEnabled
-    val minified = appConfig.minified
-    val thresholdData = buildQualificationThresholdChartData(pollService.getFirstRoundPolls())
+suspend fun ApplicationCall.renderSecondRoundPage() =
+    respondHtmlCached {
+        val gaEnabled = appConfig.gaEnabled
+        val minified = appConfig.minified
+        val thresholdData = buildQualificationThresholdChartData(pollService.getFirstRoundPolls())
 
-    lang = "fr"
-    head {
-        renderCommonHead(gaEnabled, minified)
-        meta(
-            name = "description",
-            content = "Agrégateur de sondages pour le second tour de l'élection présidentielle française de 2027."
-        )
-        title("Sondages Second Tour 2027 - voxpol.fr")
-        script(src = minPath("/static/app-second-round.js", minified)) { defer = true }
-    }
-    body {
-        renderSiteHeader("/second-tour-2027")
-        main("container") {
-            renderLineChartsAndTableForHypotheses()
-            renderQualificationThresholdDataAndText(thresholdData)
-            renderSiteFooter()
+        lang = "fr"
+        head {
+            renderCommonHead(gaEnabled, minified)
+            meta(
+                name = "description",
+                content = "Agrégateur de sondages pour le second tour de l'élection présidentielle française de 2027.",
+            )
+            title("Sondages Second Tour 2027 - voxpol.fr")
+            script(src = minPath("/static/app-second-round.js", minified)) { defer = true }
+        }
+        body {
+            renderSiteHeader("/second-tour-2027")
+            main("container") {
+                renderLineChartsAndTableForHypotheses()
+                renderQualificationThresholdDataAndText(thresholdData)
+                renderSiteFooter()
+            }
         }
     }
-}
 
 private fun FlowContent.renderLineChartsAndTableForHypotheses() {
     val testingHypotheses = pollService.combinationsByRecency().filter { it.candidates.size == 2 }

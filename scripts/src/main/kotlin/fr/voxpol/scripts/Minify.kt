@@ -19,10 +19,13 @@ private data class MinificationCsvEntry(
     val checksum: String,
     val dateTime: LocalDateTime,
 ) {
-    override fun hashCode() = filePath.hashCode()
-    override fun equals(other: Any?) = other is MinificationCsvEntry && filePath == other.filePath
+    override fun hashCode() =
+        filePath.hashCode()
+    override fun equals(other: Any?) =
+        other is MinificationCsvEntry && filePath == other.filePath
 
-    fun toCsv() = "$filePath,$checksum,$dateTime"
+    fun toCsv() =
+        "$filePath,$checksum,$dateTime"
 }
 
 // https://www.toptal.com/developers/javascript-minifier/documentation
@@ -49,7 +52,10 @@ private fun minifyFile(file: File): Int {
         setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
         setRequestProperty("charset", "utf-8")
         setRequestProperty("Content-Length", content.length.toString())
-        OutputStreamWriter(outputStream).apply { write(content); flush() }
+        OutputStreamWriter(outputStream).apply {
+            write(content)
+            flush()
+        }
     }
 
     if (connection.responseCode == 200) {
@@ -79,7 +85,8 @@ private fun writeCsv(entries: List<MinificationCsvEntry>) {
     println("Wrote ${entries.size} entries to $CSV_FILE")
 }
 
-private fun formatBytes(bytes: Long) = "${bytes / 1024} kB"
+private fun formatBytes(bytes: Long) =
+    "${bytes / 1024} kB"
 
 fun main() {
     val allFiles = listAllJsFiles() + listAllCssFiles()
@@ -97,9 +104,21 @@ fun main() {
     val filesToMinify = allFiles.filter { file ->
         val entry = csvEntries.find { it.filePath == file.path }
         when {
-            entry == null -> { println("[entry not found] ${file.path}"); true }
-            !minifiedFile(file).exists() -> { println("[not minified] ${file.path}"); true }
-            entry.checksum != checksum(file) -> { println("[checksum changed] ${file.path}"); true }
+            entry == null -> {
+                println("[entry not found] ${file.path}")
+                true
+            }
+
+            !minifiedFile(file).exists() -> {
+                println("[not minified] ${file.path}")
+                true
+            }
+
+            entry.checksum != checksum(file) -> {
+                println("[checksum changed] ${file.path}")
+                true
+            }
+
             else -> false
         }
     }
@@ -154,4 +173,3 @@ fun main() {
     println("Total reduction      → ${formatBytes(totalOrig - totalMin)}")
     println("Compression ratio    → ${"%.2f".format(totalOrig.toDouble() / totalMin)}x")
 }
-

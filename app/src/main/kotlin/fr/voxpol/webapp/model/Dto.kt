@@ -1,4 +1,4 @@
-/**
+/*
  * Objects converted to JSON to provide information to Apex Charts in the frontend.
  */
 package fr.voxpol.webapp.model
@@ -6,9 +6,7 @@ package fr.voxpol.webapp.model
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class PollChartDto(
-    val series: List<PollChartSeriesDto>,
-)
+data class PollChartDto(val series: List<PollChartSeriesDto>)
 
 @Serializable
 data class PollChartSeriesDto(
@@ -34,9 +32,7 @@ data class GlobalIntervalByCandidateStatsDto(
 )
 
 @Serializable
-data class GlobalIntervalsChartDto(
-    val stats: List<GlobalIntervalByCandidateStatsDto>,
-)
+data class GlobalIntervalsChartDto(val stats: List<GlobalIntervalByCandidateStatsDto>)
 
 @Serializable
 enum class TrendDirectionDto {
@@ -58,10 +54,7 @@ data class CandidateTrendDto(
 )
 
 @Serializable
-data class CandidateTrendChartDto(
-    val windowDays: Int,
-    val stats: List<CandidateTrendDto>,
-)
+data class CandidateTrendChartDto(val windowDays: Int, val stats: List<CandidateTrendDto>)
 
 @Serializable
 data class ThresholdChartPointDto(
@@ -72,6 +65,4 @@ data class ThresholdChartPointDto(
 )
 
 @Serializable
-data class ThresholdChartDto(
-    val data: List<ThresholdChartPointDto>,
-)
+data class ThresholdChartDto(val data: List<ThresholdChartPointDto>)

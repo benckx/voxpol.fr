@@ -27,14 +27,17 @@ class HtmlCache {
         }
         .build<String, String>()
 
-    fun get(key: String): String? = cache.getIfPresent(key).also { value ->
-        if (value != null) logger.debug { "HTML cache hit: '$key'" }
-        else logger.info { "HTML cache miss: '$key'" }
-    }
+    fun get(key: String): String? =
+        cache.getIfPresent(key).also { value ->
+            if (value != null) {
+                logger.debug { "HTML cache hit: '$key'" }
+            } else {
+                logger.info { "HTML cache miss: '$key'" }
+            }
+        }
 
     fun put(key: String, html: String) {
         logger.info { "HTML cache entry stored: '$key' (${html.length} chars)." }
         cache.put(key, html)
     }
-
 }

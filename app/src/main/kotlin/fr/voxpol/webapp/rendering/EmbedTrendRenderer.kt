@@ -12,33 +12,34 @@ import kotlinx.html.*
 private val appConfig by koin<AppConfig>()
 private val pollService by koin<PollService>()
 
-suspend fun ApplicationCall.renderTrendEmbed() = respondHtmlCached {
-    val gaEnabled = appConfig.gaEnabled
-    val trendWindowDays = appConfig.trendWindowDays
-    val minified = appConfig.minified
-    val trendChartData = buildCandidateTrendChartData(pollService.getFirstRoundPolls(), trendWindowDays)
+suspend fun ApplicationCall.renderTrendEmbed() =
+    respondHtmlCached {
+        val gaEnabled = appConfig.gaEnabled
+        val trendWindowDays = appConfig.trendWindowDays
+        val minified = appConfig.minified
+        val trendChartData = buildCandidateTrendChartData(pollService.getFirstRoundPolls(), trendWindowDays)
 
-    lang = "fr"
-    head {
-        renderCommonHead(gaEnabled, minified)
-        meta(name = "robots", content = "noindex, nofollow")
-        title("Tendances Premier Tour - voxpol.fr")
-        link(
-            rel = "stylesheet",
-            href = minPath("/static/embed/embed.css", minified),
-            type = ContentType.Text.CSS.toString()
-        )
-        script(src = minPath("/static/embed/embed-trend.js", minified)) { defer = true }
-    }
-    body {
-        main("container") {
-            renderTrendWidgetData(trendChartData)
-            p("embed-footer") {
-                a(href = "https://voxpol.fr") {
-                    target = "_blank"
-                    +"voxpol.fr"
+        lang = "fr"
+        head {
+            renderCommonHead(gaEnabled, minified)
+            meta(name = "robots", content = "noindex, nofollow")
+            title("Tendances Premier Tour - voxpol.fr")
+            link(
+                rel = "stylesheet",
+                href = minPath("/static/embed/embed.css", minified),
+                type = ContentType.Text.CSS.toString(),
+            )
+            script(src = minPath("/static/embed/embed-trend.js", minified)) { defer = true }
+        }
+        body {
+            main("container") {
+                renderTrendWidgetData(trendChartData)
+                p("embed-footer") {
+                    a(href = "https://voxpol.fr") {
+                        target = "_blank"
+                        +"voxpol.fr"
+                    }
                 }
             }
         }
     }
-}

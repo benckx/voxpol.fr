@@ -1,4 +1,4 @@
-/**
+/*
  * Re-usable bits of HTML rendering (headers, footers, chart sections, etc.) or "components" used across multiple pages.
  */
 package fr.voxpol.webapp.rendering
@@ -28,12 +28,11 @@ internal fun formatDate(date: LocalDate): String {
     return date.format(formatter)
 }
 
-internal fun normalizePollsterName(pollster: String): String {
-    return when (pollster) {
+internal fun normalizePollsterName(pollster: String): String =
+    when (pollster) {
         "Harris Interactive", "Harris-Interactive" -> "Harris"
         else -> pollster
     }
-}
 
 internal fun FlowOrPhrasingContent.candidateWikiAnchor(candidate: Candidate) {
     a(href = "$WIKI_BASE_URL${candidate.wikiSlug}") {
@@ -57,7 +56,7 @@ internal fun HEAD.renderCommonHead(gaEnabled: Boolean, minified: Boolean = false
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
       gtag('config', '$GA_MEASUREMENT_ID');
-    """.trimIndent()
+        """.trimIndent()
 
         script(src = "https://www.googletagmanager.com/gtag/js?id=$GA_MEASUREMENT_ID") {
             attributes["async"] = "true"

@@ -5,11 +5,7 @@ import fr.voxpol.wikiscrapper.Study
 import java.io.File
 import java.util.Locale
 
-internal fun exportPollsToCsv(
-    studies: List<Study>,
-    candidates: List<Candidate>,
-    outputFile: File
-) {
+internal fun exportPollsToCsv(studies: List<Study>, candidates: List<Candidate>, outputFile: File) {
     outputFile.parentFile?.mkdirs()
 
     val header = listOf("pollster", "source_url", "date_from", "date_to", "sample_size") + candidates.map { it.name }
@@ -35,7 +31,8 @@ internal fun exportPollsToCsv(
     outputFile.writeText(csvContent)
 }
 
-private fun List<String>.toCsvLine(): String = joinToString(",") { it.escapeCsv() }
+private fun List<String>.toCsvLine(): String =
+    joinToString(",") { it.escapeCsv() }
 
 private fun String.escapeCsv(): String {
     val escaped = replace("\"", "\"\"")

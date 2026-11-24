@@ -20,4 +20,3 @@ fun main() {
 
     println("Removed ${minifiedFiles.size} minified file(s)")
 }
-

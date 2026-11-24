@@ -10,7 +10,7 @@ import java.time.LocalDate
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-class PollService() {
+class PollService {
 
     private val logger = KotlinLogging.logger {}
 
@@ -91,7 +91,9 @@ class PollService() {
             if (pollRecords.isNotEmpty()) {
                 val csvCount = CsvLoader.safeLoad(csvResourceName)?.size ?: 0
                 if (csvCount > 0 && pollRecords.size * 2 <= csvCount) {
-                    logger.warn { "Wikipedia returned only ${pollRecords.size} records, which is half or less of CSV count ($csvCount). Falling back to CSV." }
+                    logger.warn {
+                        "Wikipedia returned only ${pollRecords.size} records, which is half or less of CSV count ($csvCount). Falling back to CSV."
+                    }
                     loadFromCsv()
                     return
                 }
@@ -103,22 +105,29 @@ class PollService() {
                 }
                 return
             }
-            logger.warn { "Wikipedia scraping returned no $roundLabel records${if (getCurrentRecords().isEmpty()) ", falling back to CSV" else ", keeping current data"}." }
+            logger.warn {
+                "Wikipedia scraping returned no $roundLabel records${if (getCurrentRecords().isEmpty()) ", falling back to CSV" else ", keeping current data"}."
+            }
         } catch (e: Exception) {
-            logger.error(e) { "Failed to scrape $roundLabel data from Wikipedia${if (getCurrentRecords().isEmpty()) ", falling back to CSV" else ", keeping current data"}." }
+            logger.error(e) {
+                "Failed to scrape $roundLabel data from Wikipedia${if (getCurrentRecords().isEmpty()) ", falling back to CSV" else ", keeping current data"}."
+            }
         }
 
         if (getCurrentRecords().isEmpty()) loadFromCsv()
     }
 
-    fun isNotEmpty() = inMemFirstRoundPollRecords.isNotEmpty() && inMemSecondRoundPollRecords.isNotEmpty()
+    fun isNotEmpty() =
+        inMemFirstRoundPollRecords.isNotEmpty() && inMemSecondRoundPollRecords.isNotEmpty()
 
     fun getFirstRoundPollsBefore(cutoffDate: LocalDate) =
         inMemFirstRoundPollRecords.filter { !it.dateTo.isBefore(cutoffDate) }
 
-    fun getFirstRoundPolls(): List<PollRecord> = inMemFirstRoundPollRecords
+    fun getFirstRoundPolls(): List<PollRecord> =
+        inMemFirstRoundPollRecords
 
-    private fun allPollRecords() = inMemFirstRoundPollRecords + inMemSecondRoundPollRecords
+    private fun allPollRecords() =
+        inMemFirstRoundPollRecords + inMemSecondRoundPollRecords
 
     fun combinationsByRecency(): List<TestingHypothesis> {
         // most recent poll, then has the most polls
@@ -134,13 +143,12 @@ class PollService() {
             .map { (candidates, _) -> TestingHypothesis(candidates) }
     }
 
-    fun pollsForTestingHypothesis(hypothesis: TestingHypothesis): List<PollRecord> {
-        return dropOldPollsIfEnoughRecent(
+    fun pollsForTestingHypothesis(hypothesis: TestingHypothesis): List<PollRecord> =
+        dropOldPollsIfEnoughRecent(
             allPollRecords()
                 .filter { it.scoresByCandidate.keys == hypothesis.candidates }
-                .sortedByDescending { it.dateTo }
+                .sortedByDescending { it.dateTo },
         )
-    }
 
     /**
      * If there are more than [MIN_RECENT_POLLS] polls in the last 12 months, older polls are dropped.
@@ -154,7 +162,7 @@ class PollService() {
     companion object {
         private const val MIN_RECENT_POLLS = 3
 
-        fun recentCutoffDate(): LocalDate = LocalDate.now().minusMonths(12)
+        fun recentCutoffDate(): LocalDate =
+            LocalDate.now().minusMonths(12)
     }
-
 }

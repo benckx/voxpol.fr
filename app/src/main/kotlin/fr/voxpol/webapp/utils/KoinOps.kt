@@ -10,7 +10,8 @@ import kotlin.reflect.KProperty
  * Does not require extending KoinComponent — safe to use at the file (top-level) scope.
  * Usage: private val service by koin<MyService>()
  */
-inline fun <reified T> koin(): ReadOnlyProperty<Any?, T> = KoinDelegate { getKoinInstance<T>() }
+inline fun <reified T> koin(): ReadOnlyProperty<Any?, T> =
+    KoinDelegate { getKoinInstance<T>() }
 
 inline fun <reified T> getKoinInstance(): T {
     val component = object : KoinComponent {
@@ -21,5 +22,6 @@ inline fun <reified T> getKoinInstance(): T {
 
 class KoinDelegate<T>(initializer: () -> T) : ReadOnlyProperty<Any?, T> {
     private val lazy = lazy(initializer)
-    override fun getValue(thisRef: Any?, property: KProperty<*>): T = lazy.value
+    override fun getValue(thisRef: Any?, property: KProperty<*>): T =
+        lazy.value
 }

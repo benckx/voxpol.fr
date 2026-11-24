@@ -11,7 +11,7 @@ suspend fun ApplicationCall.renderSiteMap() {
         "/premier-tour-2027",
         "/second-tour-2027",
     )
-    
+
     val sitemap = buildString {
         appendLine("""<?xml version="1.0" encoding="UTF-8"?>""")
         appendLine("""<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">""")

@@ -14,35 +14,36 @@ import kotlinx.serialization.json.Json
 private val pollService by koin<PollService>()
 private val appConfig by koin<AppConfig>()
 
-suspend fun ApplicationCall.renderFirstRoundPage() = respondHtmlCached {
-    // config
-    val gaEnabled = appConfig.gaEnabled
-    val minified = appConfig.minified
+suspend fun ApplicationCall.renderFirstRoundPage() =
+    respondHtmlCached {
+        // config
+        val gaEnabled = appConfig.gaEnabled
+        val minified = appConfig.minified
 
-    // second round threshold
-    val thresholdData = buildQualificationThresholdChartData(pollService.getFirstRoundPolls())
+        // second round threshold
+        val thresholdData = buildQualificationThresholdChartData(pollService.getFirstRoundPolls())
 
-    lang = "fr"
-    head {
-        renderCommonHead(gaEnabled, minified)
-        meta(
-            name = "description",
-            content = "Agrégateur de sondages pour le premier tour de l'élection présidentielle française de 2027."
-        )
-        title("Sondages Premier Tour 2027 - voxpol.fr")
-        script(src = minPath("/static/app.js", minified)) { defer = true }
-    }
-    body {
-        renderSiteHeader("/premier-tour-2027")
-        main("container") {
-            renderTrendWidget()
-            renderRangeWidget()
-            renderTestingHypothesesLineChartsAndTheirTable()
-            renderQualificationThresholdDataAndText(thresholdData)
-            renderSiteFooter()
+        lang = "fr"
+        head {
+            renderCommonHead(gaEnabled, minified)
+            meta(
+                name = "description",
+                content = "Agrégateur de sondages pour le premier tour de l'élection présidentielle française de 2027.",
+            )
+            title("Sondages Premier Tour 2027 - voxpol.fr")
+            script(src = minPath("/static/app.js", minified)) { defer = true }
+        }
+        body {
+            renderSiteHeader("/premier-tour-2027")
+            main("container") {
+                renderTrendWidget()
+                renderRangeWidget()
+                renderTestingHypothesesLineChartsAndTheirTable()
+                renderQualificationThresholdDataAndText(thresholdData)
+                renderSiteFooter()
+            }
         }
     }
-}
 
 private fun FlowContent.renderTrendWidget() {
     val trendWindowDays = appConfig.trendWindowDays
@@ -51,8 +52,10 @@ private fun FlowContent.renderTrendWidget() {
     if (trendChartDto.stats.isNotEmpty()) {
         h2 { +"Tendances" }
         p {
-            +("Evolution moyenne par candidat entre les $trendWindowDays derniers jours " +
-                    "et les $trendWindowDays jours precedents. La durée de cette fenêtre sera réduire à l'approche du scrutin.")
+            +(
+                "Evolution moyenne par candidat entre les $trendWindowDays derniers jours " +
+                    "et les $trendWindowDays jours precedents. La durée de cette fenêtre sera réduire à l'approche du scrutin."
+                )
         }
         renderTrendWidgetData(trendChartDto)
         details("embed-info") {
@@ -70,10 +73,10 @@ private fun FlowContent.renderRangeWidget() {
 
     if (dto.stats.isNotEmpty()) {
         val description = "Ce graphique présente la plage des intentions de vote " +
-                "pour chaque candidat, basée sur les sondages réalisés " +
-                "au cours des 12 derniers mois. La barre représente " +
-                "l'intervalle entre les intentions de vote les plus basses " +
-                "et les plus hautes enregistrées pour chaque candidat."
+            "pour chaque candidat, basée sur les sondages réalisés " +
+            "au cours des 12 derniers mois. La barre représente " +
+            "l'intervalle entre les intentions de vote les plus basses " +
+            "et les plus hautes enregistrées pour chaque candidat."
 
         h2 { +"Intervalles" }
         p { +description }
@@ -111,7 +114,7 @@ private fun FlowContent.renderTestingHypothesesLineChartsAndTheirTable() {
         renderPollsLineChartDataAndTableForHypothesis(
             pollService.pollsForTestingHypothesis(testingHypothesis),
             testingHypothesis,
-            index
+            index,
         )
     }
 }
