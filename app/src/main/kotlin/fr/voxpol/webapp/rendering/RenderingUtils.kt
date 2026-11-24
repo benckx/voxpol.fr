@@ -207,6 +207,12 @@ internal fun FlowContent.renderPollsLineChartDataAndTableForHypothesis(
     section("combination-section") {
         if (title != null) h3 { +title }
         lineChart()
+        val isCollapsible = pollsForTestingHypothesis.size > COLLAPSED_TABLE_ROWS
+        val toggleId = "$chartIdPrefix-$sectionIndex-more"
+        if (isCollapsible) {
+            // CSS-only toggle: rows past the limit are hidden until the checkbox is checked
+            input(type = InputType.checkBox, classes = "poll-data-toggle") { id = toggleId }
+        }
         div("poll-data-scroll") {
             table("poll-data") {
                 thead {
@@ -217,8 +223,8 @@ internal fun FlowContent.renderPollsLineChartDataAndTableForHypothesis(
                     }
                 }
                 tbody {
-                    pollsForTestingHypothesis.forEach { poll ->
-                        tr {
+                    pollsForTestingHypothesis.forEachIndexed { index, poll ->
+                        tr(classes = if (index >= COLLAPSED_TABLE_ROWS) "poll-data-extra" else null) {
                             pollsterCell(poll)
                             dateCell(poll)
                             scoreCells(poll)
@@ -227,8 +233,16 @@ internal fun FlowContent.renderPollsLineChartDataAndTableForHypothesis(
                 }
             }
         }
+        if (isCollapsible) {
+            label("poll-data-more") {
+                htmlFor = toggleId
+                +"Voir plus (${pollsForTestingHypothesis.size - COLLAPSED_TABLE_ROWS})"
+            }
+        }
     }
 }
+
+private const val COLLAPSED_TABLE_ROWS = 10
 
 /**
  * The JSON dto is picked up by the JS code to render the chart
