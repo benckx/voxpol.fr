@@ -121,9 +121,9 @@ fun buildCandidateTrendChartData(polls: List<PollRecord>, windowDays: Int): Cand
                 previousAvg = previousAvg,
                 delta = delta,
                 direction = when {
+                    // half a percent
                     abs(delta) < .005 -> TrendDirectionDto.FLAT
 
-                    // half a percent
                     delta > 0 -> TrendDirectionDto.UP
 
                     else -> TrendDirectionDto.DOWN
